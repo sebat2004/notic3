@@ -1,53 +1,83 @@
 'use client';
 
-import React from 'react';
-import { useCurrentAccount, useSuiClientQuery } from '@mysten/dapp-kit';
+import React, { useState, useEffect } from 'react';
+import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
+import { SuiObjectResponse } from '@mysten/sui/client';
 
-const SUBSCRIPTION_TYPE = 'PACKAGE_ADDRESS::subscription::Subscription';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+  } from "@/components/ui/card"
+
+const SUBSCRIPTION_TYPE = '0x9233592a81349d941e1804e684228d96a9f86203c3a52e66f14cc95b9f8b3edc::subscription::Subscription';
 
 function Subscriptions() {
-    const account = useCurrentAccount();
 
-    if (!account) {
-        return null;
+    const account = useCurrentAccount();
+    const suiClient = useSuiClient();
+    const [creatorSubscriptions, setCreatorSubscriptions] = useState<SuiObjectResponse[]>([]);
+    const [userSubscriptions, setUserSubscriptions] = useState<SuiObjectResponse[]>([]);
+
+    useEffect(() => {
+        if (account) {
+            fetchOwnedObjects(account.address)
+            fetchCreatorSubscriptions();
+        }
+    }, [account]);
+
+    const fetchCreatorSubscriptions = async() => {
+        const ids: string[] = []
+        userSubscriptions.forEach(objectResponse => {
+            if (objectResponse.data?.objectId) ids.push(objectResponse.data?.objectId)
+        })
+        const objResponse = await suiClient.multiGetObjects({ ids })
+        
+        console.log(objResponse)
+        setCreatorSubscriptions(objResponse)
+    }
+
+    const fetchOwnedObjects = async(address: string) => {
+        const { data } = await suiClient.getOwnedObjects({
+            owner: address,
+            options: {
+                showType: true,
+                showContent: true,
+                showOwner: true,
+            },
+            filter: {
+                StructType: SUBSCRIPTION_TYPE,
+            },
+        });
+
+        console.log(data)
+        setUserSubscriptions(data)
     }
 
     return (
-        <div>
-            <div>Connected to {account.address}</div>
-            <OwnedObjects address={account.address} />
+        <div className="flex items-center justify-center">
+            <div className="flex">
+                {creatorSubscriptions.map((object) => (
+                    <Card key={object.data?.objectId}>
+                        <CardHeader>
+                            <CardTitle>{object.data?.content?.fields}</CardTitle>
+                            <CardDescription>Expiring in x days</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                        <a href={`https://suiscan.xyz/testnet/object/${object.data?.objectId}`} target="_blank">
+                            {object.data?.objectId}
+                        </a>
+                        </CardContent>
+                        <CardFooter>
+                            <p>Card Footer</p>
+                        </CardFooter>
+                    </Card>
+                ))};
+            </div>
         </div>
-    );
-}
-
-function OwnedObjects({ address }: { address: string }) {
-    const { data } = useSuiClientQuery('getOwnedObjects', {
-        owner: address,
-        options: {
-            showType: true,
-            showContent: true,
-        },
-        filter: {
-            StructType: SUBSCRIPTION_TYPE,
-        },
-    });
-
-    if (!data || data.data.length == 0) return <div>No data return</div>;
-    if (data.data.length == 0) return <div>You do not have any subscriptions</div>;
-
-    return (
-        <ul>
-            {data.data.map((object) => (
-                <li key={object.data?.objectId}>
-                    <a
-                        href={`https://suiscan.xyz/testnet/object/${object.data?.objectId}`}
-                        target="_blank"
-                    >
-                        {object.data?.objectId}
-                    </a>
-                </li>
-            ))}
-        </ul>
     );
 }
 
