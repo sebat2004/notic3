@@ -21,33 +21,33 @@ import {
 } from '@/components/ui/carousel';
 
 const CreatePage = () => {
-
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [encryptedBlob, setencryptedBlob] = useState<Blob | null>(null);
     const [key, setKey] = React.useState<CryptoKey | null>(null);
 
     useEffect(() => {
-        crypto.subtle.generateKey(
-            {
-                name: 'AES-GCM',
-                length: 256, // Key length in bits
-            },
-            true, // Extractable
-            ['encrypt', 'decrypt'] // Key usages
-        ).then(setKey)
+        crypto.subtle
+            .generateKey(
+                {
+                    name: 'AES-GCM',
+                    length: 256, // Key length in bits
+                },
+                true, // Extractable
+                ['encrypt', 'decrypt'] // Key usages
+            )
+            .then(setKey);
 
         return () => {
             if (previewUrl) URL.revokeObjectURL(previewUrl);
-        }
+        };
     }, []);
 
     const handleButtonClick = () => {
         fileInputRef.current?.click();
-    }
+    };
 
     const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-
         const file = event.target.files ? event.target.files[0] : null;
 
         if (!file) {
@@ -65,9 +65,9 @@ const CreatePage = () => {
             key!,
             fileData
         );
-        
+
         setencryptedBlob(new Blob([encryptedFile]));
-        console.log(encryptedBlob)
+        console.log(encryptedBlob);
 
         // TODO: Send the encrypted file to the Walrus API
     };
@@ -83,24 +83,30 @@ const CreatePage = () => {
                 <CardContent>
                     <div className="flex w-[100%] flex-col items-center justify-center">
                         <Card className="h-[20vh] w-full">
-                            { previewUrl && (
-                                <div className="w-full h-full flex items-center justify-center">
-                                    <img 
-                                        src={previewUrl} 
-                                        alt="Preview" 
-                                        className="max-w-full max-h-full object-contain"
+                            {previewUrl && (
+                                <div className="flex h-full w-full items-center justify-center">
+                                    <img
+                                        src={previewUrl}
+                                        alt="Preview"
+                                        className="max-h-full max-w-full object-contain"
                                     />
                                 </div>
                             )}
                         </Card>
-                        <input type="file" ref={fileInputRef} onChange={handleUpload} accept="image/*" className="invisible" />
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleUpload}
+                            accept="image/*"
+                            className="invisible"
+                        />
                         <Button variant="outline" onClick={handleButtonClick} disabled={!key}>
                             Upload File
                         </Button>
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <p className="text-muted-foreground text-center text-sm">
+                    <p className="text-center text-sm text-muted-foreground">
                         Note: The file will be encrypted before being uploaded.
                     </p>
                 </CardFooter>
