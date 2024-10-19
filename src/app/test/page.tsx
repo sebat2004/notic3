@@ -1,7 +1,6 @@
 'use client';
 
 import { SuiClient } from '@mysten/sui/client';
-import { useCurrentAccount } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
 import { getWallets } from '@mysten/wallet-standard';
 
