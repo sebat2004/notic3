@@ -25,10 +25,12 @@ const CreatePage = () => {
     const [iv, setIv] = useState<Uint8Array>(new Uint8Array(12));
     const [regularKey, setRegularKey] = useState<string | null>(null);
     const [blobId, setBlobId] = useState<string | null>(null);
+    const [isClient, setIsClient] = useState(false);
 
     const uploadFileMutation = useUploadFile();
 
     useEffect(() => {
+        setIsClient(true);
         const newKey = crypto.getRandomValues(new Uint8Array(32));
         const keyString = Array.from(newKey)
             .map((b) => b.toString(16).padStart(2, '0'))
@@ -90,6 +92,10 @@ const CreatePage = () => {
             fileInputRef.current.click();
         }
     };
+
+    if (!isClient) {
+        return;
+    }
 
     return (
         <div className="flex w-full flex-col items-center justify-between p-10">
