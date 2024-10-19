@@ -159,7 +159,7 @@ const CreatePage = () => {
                                 className="h-24 w-24 rounded-full"
                             />
                             <h1 className="mt-2 text-2xl font-semibold">John Doe</h1>
-                            <p className="text-muted-foreground text-sm">Software Developer</p>
+                            <p className="text-sm text-muted-foreground">Software Developer</p>
                         </div>
                     </CardContent>
                     <CardFooter>
@@ -204,7 +204,7 @@ const CreatePage = () => {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <p className="text-muted-foreground text-center text-sm">
+                        <p className="text-center text-sm text-muted-foreground">
                             Note: All content is encrypted before being uploaded to the chain
                         </p>
                     </CardFooter>

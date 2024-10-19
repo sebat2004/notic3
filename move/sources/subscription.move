@@ -14,6 +14,7 @@ module notic3::subscription {
     }
 
     public struct Subscription has store, drop {
+        creater_subscription_id: ID,
         start_time: u64,
         end_time: u64
     }
@@ -92,6 +93,7 @@ module notic3::subscription {
         let subscriber = tx_context::sender(ctx);
         let now = clock::timestamp_ms(clock);
         let subscription = Subscription {
+            creater_subscription_id: object::uid_to_inner(&self.id),
             start_time: now,
             end_time: now + self.subscription_duration
         };
