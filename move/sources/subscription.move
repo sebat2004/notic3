@@ -4,6 +4,11 @@ module notic3::subscription {
     use std::string::{String};
     use sui::vec_map::{Self, VecMap};
 
+    public struct CreatorSubscriptionRegistry has key {
+        id: UID,
+        subscriptions: vector<ID>,
+    }
+
     public struct CreatorSubscription has key {
         id: UID,
         creator: address,
@@ -14,7 +19,7 @@ module notic3::subscription {
     }
 
     public struct Subscription has store, drop {
-        creater_subscription_id: ID,
+        creator_subscription_id: ID,
         start_time: u64,
         end_time: u64
     }
@@ -27,7 +32,16 @@ module notic3::subscription {
         enc_sym_keys: Option<Table<address, u64>>
     }
 
+    fun init(ctx: &mut TxContext) {
+        let registry = CreatorSubscriptionRegistry {
+            id: object::new(ctx),
+            subscriptions: vector::empty(),
+        };
+        transfer::share_object(registry);
+    }
+
     public fun initialize(
+        self: &mut CreatorSubscriptionRegistry,
         subscription_price: u64,
         subscription_duration: u64,
         ctx: &mut TxContext
@@ -40,7 +54,10 @@ module notic3::subscription {
             subscription_price,
             subscription_duration
         };
+        let subscription_id = object::id(&subscription);
         transfer::share_object(subscription);
+
+        vector::push_back(&mut self.subscriptions, subscription_id)
     }
 
     public entry fun content(
@@ -92,13 +109,13 @@ module notic3::subscription {
     ) {
         let subscriber = tx_context::sender(ctx);
         let now = clock::timestamp_ms(clock);
+
         let subscription = Subscription {
-            creater_subscription_id: object::uid_to_inner(&self.id),
+            creator_subscription_id: object::uid_to_inner(&self.id),
             start_time: now,
             end_time: now + self.subscription_duration
         };
         vec_map::insert(&mut self.subscriptions, subscriber, subscription);
-        // Here you would typically handle the payment logic
     }
 
     public fun is_subscribed(self: &CreatorSubscription, subscriber: address, clock: &Clock): bool {
