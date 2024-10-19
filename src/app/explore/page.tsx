@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Separator } from '@/components/ui/separator';
 import { CreatorCard } from '@/components/creator-card';
@@ -30,7 +32,15 @@ const SAMPLE_DATA = [
     },
 ];
 
-const ExplorePage = () => {
+import { useCurrentAccount, useSuiClientQuery } from '@mysten/dapp-kit';
+
+function Creators() {
+    const account = useCurrentAccount();
+
+    if (!account) {
+        return null;
+    }
+
     return (
         <div className="mt-12 w-full px-10">
             <h1 className="mb-4 text-center text-5xl font-bold">Featured Creators</h1>
@@ -43,8 +53,26 @@ const ExplorePage = () => {
                     />
                 ))}
             </div>
+            <div>Connected to {account.address}</div>;
+            <Objects address={''} />
         </div>
     );
-};
+}
 
-export default ExplorePage;
+function Objects({ address }: { address: string }) {
+    const { data } = useSuiClientQuery('getObject', {
+        id: address,
+    });
+
+    if (!data || !data.data) return <div>No data return</div>;
+
+    return (
+        <div key={data.data.objectId}>
+            <a href={`https://example-explorer.com/object/${data.data?.objectId}`}>
+                {data.data.objectId}
+            </a>
+        </div>
+    );
+}
+
+export default Creators;
