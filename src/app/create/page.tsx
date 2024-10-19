@@ -59,6 +59,10 @@ const CreatePage = () => {
         };
     }, []);
 
+    if (!isClient) {
+        return null;
+    }
+
     const handleButtonClick = () => {
         fileInputRef.current?.click();
     };
