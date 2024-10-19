@@ -14,7 +14,7 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
 
 // Function to convert hex string to Uint8Array
 function hexToUint8Array(hexString: string): Uint8Array {
-    return new Uint8Array(hexString.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+    return new Uint8Array(hexString.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
 }
 
 // Function to decrypt AES-GCM encrypted data
@@ -36,19 +36,17 @@ async function decryptData(
 // Function to import key from string
 async function importKeyFromString(keyString: string): Promise<CryptoKey> {
     const keyData = hexToUint8Array(keyString);
-    return await window.crypto.subtle.importKey(
-        'raw',
-        keyData,
-        { name: 'AES-GCM' },
-        false,
-        ['decrypt']
-    );
+    return await window.crypto.subtle.importKey('raw', keyData, { name: 'AES-GCM' }, false, [
+        'decrypt',
+    ]);
 }
 
 // Function to determine file type and load content
-async function loadFile(buffer: ArrayBuffer): Promise<{ type: string; content: string | ArrayBuffer }> {
+async function loadFile(
+    buffer: ArrayBuffer
+): Promise<{ type: string; content: string | ArrayBuffer }> {
     const fileType = await fileTypeFromBuffer(buffer);
-    
+
     if (!fileType) {
         // If file type is not detected, return the buffer as is
         return { type: 'application/octet-stream', content: buffer };
@@ -64,7 +62,6 @@ async function loadFile(buffer: ArrayBuffer): Promise<{ type: string; content: s
     // For binary files, return the buffer as is
     return { type: fileType.mime, content: buffer };
 }
-
 
 //this will return the file content and the file type, then we can just render the file content based on the file type
 export const useDownloadFile = (keyString: string, ivString: string) => {
@@ -96,9 +93,6 @@ export const useDownloadFile = (keyString: string, ivString: string) => {
                 'Downloaded and decrypted file',
                 new Uint8Array(decryptedArrayBuffer).subarray(0, 100)
             );
-            
-            
-
 
             // Determine file type and load content
             const fileInfo = await loadFile(decryptedArrayBuffer);
@@ -106,8 +100,8 @@ export const useDownloadFile = (keyString: string, ivString: string) => {
             console.log(
                 'Downloaded and decrypted file',
                 fileInfo.type,
-                fileInfo.content instanceof ArrayBuffer 
-                    ? new Uint8Array(fileInfo.content).subarray(0, 100) 
+                fileInfo.content instanceof ArrayBuffer
+                    ? new Uint8Array(fileInfo.content).subarray(0, 100)
                     : fileInfo.content.substring(0, 100)
             );
 
