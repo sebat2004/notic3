@@ -11,12 +11,12 @@ import {
     CardFooter,
     CardHeader,
     CardTitle,
-  } from "@/components/ui/card"
+} from '@/components/ui/card';
 
-const SUBSCRIPTION_TYPE = '0x9233592a81349d941e1804e684228d96a9f86203c3a52e66f14cc95b9f8b3edc::subscription::Subscription';
+const SUBSCRIPTION_TYPE =
+    '0x9233592a81349d941e1804e684228d96a9f86203c3a52e66f14cc95b9f8b3edc::subscription::Subscription';
 
 function Subscriptions() {
-
     const account = useCurrentAccount();
     const suiClient = useSuiClient();
     const [creatorSubscriptions, setCreatorSubscriptions] = useState<SuiObjectResponse[]>([]);
@@ -24,23 +24,23 @@ function Subscriptions() {
 
     useEffect(() => {
         if (account) {
-            fetchOwnedObjects(account.address)
+            fetchOwnedObjects(account.address);
             fetchCreatorSubscriptions();
         }
     }, [account]);
 
-    const fetchCreatorSubscriptions = async() => {
-        const ids: string[] = []
-        userSubscriptions.forEach(objectResponse => {
-            if (objectResponse.data?.objectId) ids.push(objectResponse.data?.objectId)
-        })
-        const objResponse = await suiClient.multiGetObjects({ ids })
-        
-        console.log(objResponse)
-        setCreatorSubscriptions(objResponse)
-    }
+    const fetchCreatorSubscriptions = async () => {
+        const ids: string[] = [];
+        userSubscriptions.forEach((objectResponse) => {
+            if (objectResponse.data?.objectId) ids.push(objectResponse.data?.objectId);
+        });
+        const objResponse = await suiClient.multiGetObjects({ ids });
 
-    const fetchOwnedObjects = async(address: string) => {
+        console.log(objResponse);
+        setCreatorSubscriptions(objResponse);
+    };
+
+    const fetchOwnedObjects = async (address: string) => {
         const { data } = await suiClient.getOwnedObjects({
             owner: address,
             options: {
@@ -53,9 +53,9 @@ function Subscriptions() {
             },
         });
 
-        console.log(data)
-        setUserSubscriptions(data)
-    }
+        console.log(data);
+        setUserSubscriptions(data);
+    };
 
     return (
         <div className="flex items-center justify-center">
@@ -67,15 +67,19 @@ function Subscriptions() {
                             <CardDescription>Expiring in x days</CardDescription>
                         </CardHeader>
                         <CardContent>
-                        <a href={`https://suiscan.xyz/testnet/object/${object.data?.objectId}`} target="_blank">
-                            {object.data?.objectId}
-                        </a>
+                            <a
+                                href={`https://suiscan.xyz/testnet/object/${object.data?.objectId}`}
+                                target="_blank"
+                            >
+                                {object.data?.objectId}
+                            </a>
                         </CardContent>
                         <CardFooter>
                             <p>Card Footer</p>
                         </CardFooter>
                     </Card>
-                ))};
+                ))}
+                ;
             </div>
         </div>
     );
