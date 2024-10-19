@@ -25,7 +25,6 @@ export function Providers({ children }: { children: ReactNode }) {
                 <WalletProvider autoConnect>
                     <SidebarProvider>
                         <AppSidebar />
-                        <SidebarTrigger />
                         {children}
                         <Connect />
                     </SidebarProvider>
