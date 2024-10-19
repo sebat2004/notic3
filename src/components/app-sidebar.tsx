@@ -9,15 +9,13 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarSeparator,
+    SidebarHeader,
 } from '@/components/ui/sidebar';
+import { Logo } from './logo';
 
 // Menu items.
 const items = [
-    {
-        title: 'Home',
-        url: '/',
-        icon: Home,
-    },
     {
         title: 'Explore',
         url: '/explore',
@@ -33,26 +31,24 @@ const items = [
         url: '/create',
         icon: SquarePen,
     },
-    {
-        title: 'Settings',
-        url: '/settings',
-        icon: Settings,
-    },
 ];
 
 export function AppSidebar() {
     return (
         <Sidebar>
             <SidebarContent>
+                <SidebarHeader>
+                    <Logo className="m-4 text-black" />
+                </SidebarHeader>
                 <SidebarGroup>
-                    <SidebarGroupLabel>Application</SidebarGroupLabel>
+                    <SidebarGroupLabel></SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {items.map((item) => (
                                 <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild>
-                                        <a href={item.url}>
-                                            <item.icon />
+                                    <SidebarMenuButton asChild className="py-4">
+                                        <a href={item.url} className="text-xl font-bold">
+                                            <item.icon className="mr-2" />
                                             <span>{item.title}</span>
                                         </a>
                                     </SidebarMenuButton>
