@@ -11,11 +11,15 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
 }
 
 // Function to decrypt AES-GCM encrypted data
-async function decryptData(encryptedData: ArrayBuffer, key: CryptoKey, iv: Uint8Array): Promise<ArrayBuffer> {
+async function decryptData(
+    encryptedData: ArrayBuffer,
+    key: CryptoKey,
+    iv: Uint8Array
+): Promise<ArrayBuffer> {
     return await window.crypto.subtle.decrypt(
         {
-            name: "AES-GCM",
-            iv: iv
+            name: 'AES-GCM',
+            iv: iv,
         },
         key,
         encryptedData
@@ -39,11 +43,14 @@ export const useDownloadFile = (key: CryptoKey, iv: Uint8Array) => {
             }
             const base64EncryptedFile = await response.text();
             const encryptedArrayBuffer = base64ToArrayBuffer(base64EncryptedFile);
-            
+
             // Decrypt the file
             const decryptedArrayBuffer = await decryptData(encryptedArrayBuffer, key, iv);
-            
-            console.log('Downloaded and decrypted file', new Uint8Array(decryptedArrayBuffer).subarray(0, 100));
+
+            console.log(
+                'Downloaded and decrypted file',
+                new Uint8Array(decryptedArrayBuffer).subarray(0, 100)
+            );
             return decryptedArrayBuffer;
         },
     });
