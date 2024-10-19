@@ -9,8 +9,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { TextUploadForm } from '../TextUploadForm';
-import { Input } from '@/components/ui/input';
+import { useState } from 'react';
 
 const ContentOption = ({
     Icon,
@@ -23,18 +22,21 @@ const ContentOption = ({
     tooltipText: string;
     formTitle: 'Text' | 'Image' | 'Video' | 'Poll';
 }) => {
+    const [open, setOpen] = useState(false);
+
     return (
         <Tooltip delayDuration={TOOLTIP_DELAY}>
             <TooltipProvider>
                 <TooltipTrigger>
-                    <Dialog>
+                    <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
                             <Button className="w-full" variant="outline" size="icon">
                                 <Icon />
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
-                            <Form />
+                            <DialogTitle>{formTitle}</DialogTitle>
+                            <Form setOpen={setOpen} />
                         </DialogContent>
                     </Dialog>
                 </TooltipTrigger>
