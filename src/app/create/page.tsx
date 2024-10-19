@@ -1,6 +1,7 @@
 'use client';
+
 import React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -20,29 +21,40 @@ import {
 } from '@/components/ui/carousel';
 
 const CreatePage = () => {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [encryptedBlob, setencryptedBlob] = useState<Blob | null>(null);
     const [key, setKey] = React.useState<CryptoKey | null>(null);
+
     useEffect(() => {
-        (async () => {
-            const newKey = await crypto.subtle.generateKey(
+        crypto.subtle
+            .generateKey(
                 {
                     name: 'AES-GCM',
                     length: 256, // Key length in bits
                 },
                 true, // Extractable
                 ['encrypt', 'decrypt'] // Key usages
-            );
-            setKey(newKey);
-        })();
+            )
+            .then(setKey);
+
+        return () => {
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+        };
     }, []);
 
-    const handleUpload = async () => {
-        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-        fileInput.click();
-        const file = fileInput.files?.[0];
+    const handleButtonClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files ? event.target.files[0] : null;
 
         if (!file) {
             return;
         }
+
+        setPreviewUrl(URL.createObjectURL(file));
 
         const fileData = await file.arrayBuffer();
         const encryptedFile = await crypto.subtle.encrypt(
@@ -53,16 +65,13 @@ const CreatePage = () => {
             key!,
             fileData
         );
-        const blob1 = new Blob([encryptedFile]);
-        const url = URL.createObjectURL(blob1);
-        const img = document.getElementById('img') as HTMLImageElement;
-        img.src = url;
 
-        // So the Blob can be Garbage Collected
-        img!.onload = (e) => URL.revokeObjectURL(url);
+        setencryptedBlob(new Blob([encryptedFile]));
+        console.log(encryptedBlob);
 
         // TODO: Send the encrypted file to the Walrus API
     };
+
     return (
         <div className="flex w-full items-center justify-between p-10">
             {/* Upload Content Card */}
@@ -73,15 +82,31 @@ const CreatePage = () => {
                 </CardHeader>
                 <CardContent>
                     <div className="flex w-[100%] flex-col items-center justify-center">
-                        <Card className="h-[20vh] w-full"></Card>
-                        <input type="file" className="invisible" />
-                        <Button variant="outline" onClick={handleUpload} disabled={!key}>
+                        <Card className="h-[20vh] w-full">
+                            {previewUrl && (
+                                <div className="flex h-full w-full items-center justify-center">
+                                    <img
+                                        src={previewUrl}
+                                        alt="Preview"
+                                        className="max-h-full max-w-full object-contain"
+                                    />
+                                </div>
+                            )}
+                        </Card>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleUpload}
+                            accept="image/*"
+                            className="invisible"
+                        />
+                        <Button variant="outline" onClick={handleButtonClick} disabled={!key}>
                             Upload File
                         </Button>
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <p className="text-muted-foreground text-center text-sm">
+                    <p className="text-center text-sm text-muted-foreground">
                         Note: The file will be encrypted before being uploaded.
                     </p>
                 </CardFooter>
