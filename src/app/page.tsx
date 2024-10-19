@@ -2,13 +2,21 @@
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { generateNonce, generateRandomness } from '@mysten/zklogin';
 import { SuiClient } from '@mysten/sui/client';
+import { useEffect, useState } from 'react';
 
 const FULLNODE_URL = 'https://fullnode.testnet.sui.io'; // replace with the RPC URL you want to use
 
-export default async function Login() {
+export default function Login() {
+    const [epoch, setEpoch] = useState(0);
+
+    useEffect(() => {
+        (async () => {
+            const { epoch } = await suiClient.getLatestSuiSystemState();
+            setEpoch(Number(epoch));
+        })();
+    }, []);
+
     const suiClient = new SuiClient({ url: FULLNODE_URL });
-    const { epoch, epochDurationMs, epochStartTimestampMs } =
-        await suiClient.getLatestSuiSystemState();
 
     const maxEpoch = Number(epoch) + 2; // this means the ephemeral key will be active for 2 epochs from now.
     const ephemeralKeyPair = new Ed25519Keypair();
