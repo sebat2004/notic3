@@ -26,7 +26,6 @@ export function Providers({ children }: { children: ReactNode }) {
                     <SidebarProvider>
                         <AppSidebar />
                         {children}
-                        <Connect />
                     </SidebarProvider>
                 </WalletProvider>
             </SuiClientProvider>

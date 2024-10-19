@@ -11,7 +11,9 @@ import {
     SidebarMenuItem,
     SidebarSeparator,
     SidebarHeader,
+    SidebarFooter,
 } from '@/components/ui/sidebar';
+import { ConnectButton } from '@mysten/dapp-kit';
 import { Logo } from './logo';
 
 // Menu items.
@@ -36,10 +38,10 @@ const items = [
 export function AppSidebar() {
     return (
         <Sidebar>
+            <SidebarHeader>
+                <Logo className="m-4 text-black" />
+            </SidebarHeader>
             <SidebarContent>
-                <SidebarHeader>
-                    <Logo className="m-4 text-black" />
-                </SidebarHeader>
                 <SidebarGroup>
                     <SidebarGroupLabel></SidebarGroupLabel>
                     <SidebarGroupContent>
@@ -58,6 +60,11 @@ export function AppSidebar() {
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
+            <SidebarFooter>
+                <div className="mb-2 font-sans text-xl">
+                    <ConnectButton className="w-full bg-slate-600" />
+                </div>
+            </SidebarFooter>
         </Sidebar>
     );
 }
