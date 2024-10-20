@@ -1,3 +1,4 @@
+import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import { useQuery } from '@tanstack/react-query';
 
 export interface Creator {
@@ -70,14 +71,19 @@ export const SAMPLE_CREATORS: Creator[] = [
     },
 ];
 
-export const fetchCreators = async (): Promise<Creator[]> => {
+export const fetchCreators = async (subscribedOnly: boolean): Promise<Creator[]> => {
+    const client = useSuiClient();
+    const account = useCurrentAccount();
     // Replace w/ RPC calls
     return SAMPLE_CREATORS;
 };
 
-export const useCreators = () => {
+export const useCreators = (subscribedOnly: boolean = false) => {
     return useQuery({
-        queryKey: ['creators'],
-        queryFn: fetchCreators,
+        queryKey: ['creators', subscribedOnly],
+        queryFn: ({ queryKey }) => {
+            const [, subscribedOnly] = queryKey;
+            return fetchCreators(subscribedOnly as boolean);
+        },
     });
 };
