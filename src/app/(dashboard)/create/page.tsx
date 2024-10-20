@@ -66,7 +66,7 @@ const CreatePage = () => {
         });
     }, [account, creators]);
 
-    if (!registered || true) {
+    if (!registered) {
         return (
             <div className="mx-auto my-10 w-full max-w-lg">
                 <p className="text-center text-4xl font-bold">Create Profile</p>
