@@ -124,6 +124,8 @@ const fetchUnecryptedFile = async (blobId: string) => {
         },
     });
 
+    return await response.text();
+
     const blob = await response.blob();
     return URL.createObjectURL(blob);
 };
