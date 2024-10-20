@@ -19,6 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Transaction } from '@mysten/sui/transactions';
 import { useSignTransaction, useSuiClient } from '@mysten/dapp-kit';
+import { Loader2 } from 'lucide-react';
 
 const MAX_UPLOAD_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_MB = MAX_UPLOAD_SIZE / 1024 / 1024;
@@ -72,6 +73,7 @@ export function CreateProfileForm({ setOpen }: { setOpen: (open: boolean) => voi
     const [preview, setPreview] = useState('');
     const client = useSuiClient();
     const { mutateAsync: signTransaction } = useSignTransaction();
+    const [isSubmitted, setIsSubmitted] = useState(false);
 
     const form = useForm<z.infer>({
         resolver: zodResolver(formSchema),
@@ -80,6 +82,7 @@ export function CreateProfileForm({ setOpen }: { setOpen: (open: boolean) => voi
 
     async function onSubmit(data: z.infer) {
         setOpen(false);
+        setIsSubmitted(true);
 
         const response = await fetch(
             `https://walrus-testnet-publisher.nodes.guru/v1/store?epochs=5`,
@@ -203,7 +206,10 @@ export function CreateProfileForm({ setOpen }: { setOpen: (open: boolean) => voi
                         );
                     }}
                 />
-                <Button type="submit">Submit</Button>
+                <Button disabled={isSubmitted} type="submit">
+                    {isSubmitted && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Submit
+                </Button>
             </form>
         </Form>
     );
