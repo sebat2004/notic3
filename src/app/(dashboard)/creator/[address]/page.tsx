@@ -296,6 +296,12 @@ export default function CreatorProfile({ params }: { params: Params }) {
                                 className="grid grid-cols-1 gap-4 md:grid-cols-2"
                                 value="images"
                             >
+                                {posts.filter((post) => post.type === 'image').length === 0 && (
+                                    <div className="text-gray-500">
+                                        No image posts found. Check back later!
+                                    </div>
+                                )}
+
                                 {posts.map((post) => {
                                     if (post.type === 'image') {
                                         return (
@@ -313,6 +319,11 @@ export default function CreatorProfile({ params }: { params: Params }) {
                                 className="grid grid-cols-1 gap-4 md:grid-cols-2"
                                 value="videos"
                             >
+                                {posts.filter((post) => post.type === 'video').length === 0 && (
+                                    <div className="text-gray-500">
+                                        No video posts found. Check back later!
+                                    </div>
+                                )}
                                 {posts.map((post) => {
                                     if (post.type === 'video') {
                                         return (
@@ -330,6 +341,11 @@ export default function CreatorProfile({ params }: { params: Params }) {
                                 className="grid grid-cols-1 gap-4 md:grid-cols-2"
                                 value="blogs"
                             >
+                                {posts.filter((post) => post.type === 'blog').length === 0 && (
+                                    <div className="text-gray-500">
+                                        No blog posts found. Check back later!
+                                    </div>
+                                )}
                                 {posts.map((post) => {
                                     if (post.type === 'blog') {
                                         return (
@@ -343,7 +359,7 @@ export default function CreatorProfile({ params }: { params: Params }) {
                                 })}
                             </TabsContent>
                             <TabsContent value="polls">
-                                <div>Polls</div>
+                                <div>No Polls yet</div>
                             </TabsContent>
                         </Tabs>
                     </CardContent>

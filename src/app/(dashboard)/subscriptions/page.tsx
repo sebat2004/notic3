@@ -12,11 +12,20 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useCreators } from '@/hooks/use-creators';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { Navigation, SquareArrowOutUpRight } from 'lucide-react';
 
 interface Subscription {
     creator_subscription_id: string;
     end_time: string;
     start_time: string;
+    cost: string;
+    title: string;
+    creator_id: string;
+    creator_name?: string;
+    creator_blobId?: string;
 }
 
 type SubscriptionArray = Subscription[];
@@ -27,7 +36,7 @@ function Subscriptions() {
     const [registry, setRegistry] = useState<SuiObjectResponse>();
     const [creatorSubscriptions, setCreatorSubscriptions] = useState<SuiObjectResponse[]>([]);
     const [userSubscriptions, setUserSubscriptions] = useState<SubscriptionArray>([]);
-    const [cost, setCost] = useState(0);
+    const creators = useCreators();
 
     const { data, isPending, isFetching } = useKeyPair();
 
@@ -61,13 +70,15 @@ function Subscriptions() {
                             id: subscription.fields.value.fields.creator_subscription_id,
                             options: { showContent: true },
                         });
-                        setCost(creatorSubResp.data?.content?.fields.subscription_price);
-
+                        console.log(creatorSubResp.data?.content?.fields);
                         userSubs.push({
                             creator_subscription_id:
                                 subscription.fields.value.fields.creator_subscription_id,
                             end_time: subscription.fields.value.fields.end_time,
                             start_time: subscription.fields.value.fields.start_time,
+                            cost: creatorSubResp.data?.content?.fields.subscription_price,
+                            creator_id: creatorSubResp.data?.content?.fields.creator,
+                            title: creatorSubResp.data?.content?.fields.title,
                         });
                     }
                 }
@@ -103,15 +114,41 @@ function Subscriptions() {
         );
     }
 
+    console.log(userSubscriptions);
+    const allIds = userSubscriptions.map((sub) => sub.creator_subscription_id);
+    const userSubscriptionsWithInfo = [] as Subscription[];
+
+    creators.forEach((creator) => {
+        // Find the creator subscription and add it to the userSubscriptionsWithInfo array
+        console.log(creator);
+        const subscription = userSubscriptions.find((sub) => sub.creator_id === creator.address);
+        console.log(userSubscriptions);
+        if (subscription) {
+            console.log(creator);
+            userSubscriptionsWithInfo.push({
+                ...subscription,
+                creator_name: creator.name,
+                creator_blobId: creator.image,
+            });
+        }
+    });
+    console.log(userSubscriptionsWithInfo);
+
     return (
-        <div className="flex items-center justify-center">
+        <div className="flex w-full flex-col items-center justify-start gap-10 p-10">
+            <h1 className="text-2xl font-bold">Your Subscriptions</h1>
             <div className="flex flex-col">
-                {userSubscriptions.map((subscription) => (
+                {userSubscriptionsWithInfo.map((subscription) => (
                     <Card key={subscription.end_time}>
                         <CardHeader>
-                            <CardTitle>{subscription.creator_subscription_id}</CardTitle>
+                            <CardTitle>
+                                {subscription.creator_name}'s {subscription.title} Subscription
+                            </CardTitle>
                             <CardDescription>
-                                Expiring in {calculateTimeLeft(subscription.end_time)}
+                                <div className="flex flex-col gap-2">
+                                    <h2>{subscription.creator_subscription_id}</h2>
+                                    <h2>Expiring in {calculateTimeLeft(subscription.end_time)}</h2>
+                                </div>
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -123,12 +160,15 @@ function Subscriptions() {
                                 >
                                     View on SuiScan
                                 </a>
-                                <span>Cost: {cost} $SUI</span>
+                                <span>Cost: {subscription.cost} $SUI</span>
+                                <Button asChild variant="outline" size="lg">
+                                    <Link href={`creator/${subscription.creator_id}`}>
+                                        View Creator
+                                        <SquareArrowOutUpRight />
+                                    </Link>
+                                </Button>
                             </div>
                         </CardContent>
-                        <CardFooter>
-                            <p>Subscription Details</p>
-                        </CardFooter>
                     </Card>
                 ))}
             </div>
