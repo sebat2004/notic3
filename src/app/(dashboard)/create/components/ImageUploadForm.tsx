@@ -1,5 +1,6 @@
 'use client';
 
+import crypto from 'crypto'
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -20,6 +21,8 @@ import { ChangeEvent, useState, useEffect } from 'react';
 import { useUploadFile } from '@/hooks/queries';
 import { useCurrentAccount, useSuiClient, useSignTransaction } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
+
+import { useEncryptKey } from '@/hooks/sussyencypt';
 
 interface Subscription {
     label: string;
@@ -142,35 +145,45 @@ export function ImageUploadForm({
             console.error('Failed to upload file');
         }
 
-        const registryResp = await suiClient.getObject({
-            id: process.env.NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID,
+        const subscriptionResp = await suiClient.getObject({
+            id: data.subscription,
             options: {
                 showContent: true,
             },
         });
-        const s = registryResp.data?.content?.fields.subscriptions.fields.contents.filter(
-            (subscription) => subscription.fields.value.fields.creator == account?.address
-        );
-        const userAddresses = [];
-        const encKeys = [];
-        const encIvs = [];
-        s.fields.contents.forEach((subscription) => {
-            console.log(subscription);
-        });
+        console.log(subscriptionResp)
+
+        const userAddresses: string[] = [];
+        const encKeys: string[] = [];
+        const encIvs: string[] = [];
+
+        function encryptWithPublicKey(publicKey, message) {
+            const buffer = Buffer.from(message, 'utf8');
+            const encrypted = crypto.publicEncrypt({
+                key: publicKey,
+                padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+                oaepHash: 'sha256'
+            }, buffer);
+            return encrypted.toString('base64');
+        }
+
+        subscriptionResp.data.content.fields.subscriptions.fields.contents.forEach(sub => {
+            console.log(sub.fields.value)
+            userAddresses.push()
+            encKeys.push()
+            encIvs.push()
+        })
+
         const tx = new Transaction();
 
         tx.moveCall({
             target: `${process.env.NEXT_PUBLIC_PACKAGE_ID}::subscription::content`,
             arguments: [
                 tx.object(data.subscription),
-                tx.pure.string(
-                    res.newlyCreated == undefined
-                        ? res.alreadyCertified.blobId
-                        : res.newlyCreated.blobObject.blobId
-                ),
-                tx.pure.vector('string', []),
-                tx.pure.vector('string', ['1', '2']),
-                tx.pure.vector('string', ['1', '2']),
+                tx.pure.string(res.newlyCreated == undefined ? res.alreadyCertified.blobId : res.newlyCreated.blobObject.blobId),
+                tx.pure.vector('string', userAddresses),
+                tx.pure.vector('string', encKeys),
+                tx.pure.vector('string', encIvs),
             ],
         });
 
