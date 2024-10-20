@@ -1,4 +1,4 @@
-import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
+import { useSuiClientQuery, useSuiClient } from '@mysten/dapp-kit';
 import { useQuery } from '@tanstack/react-query';
 
 export interface Creator {
@@ -71,19 +71,23 @@ export const SAMPLE_CREATORS: Creator[] = [
     },
 ];
 
-export const fetchCreators = async (subscribedOnly: boolean): Promise<Creator[]> => {
+export const fetchCreators = async (subscribedOnly: true) => {
     const client = useSuiClient();
-    const account = useCurrentAccount();
-    // Replace w/ RPC calls
-    return SAMPLE_CREATORS;
+    const res = await client.getObject({
+        id: process.env.NEXT_PUBLIC_CREATOR_REGISTRY_ID,
+        options: {
+            showContent: true,
+        },
+    });
+    return res?.data?.content?.fields.creators
 };
 
 export const useCreators = (subscribedOnly: boolean = false) => {
-    return useQuery({
-        queryKey: ['creators', subscribedOnly],
-        queryFn: ({ queryKey }) => {
-            const [, subscribedOnly] = queryKey;
-            return fetchCreators(subscribedOnly as boolean);
-        },
-    });
+    const { data, isPending, isError, error, refetch } = useSuiClientQuery(
+        'getObject',
+        { id: process.env.NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID, },
+        { showContent: true }
+    )
+
+    console.log(data)
 };

@@ -23,46 +23,77 @@ interface Subscription {
 type SubscriptionArray = Subscription[];
 
 function Subscriptions() {
-    const PACKAGE_ID = '0x993f1f7eee655c9c8bf383d3cfc155541a464149d531c9066853ac1ad1549126';
-    const REGISTRY_ID = '0xcb2f1a519d9e2b8b3ff64a68803931143de2425b8ba3afd4726cd8de33eb8dab';
 
     const account = useCurrentAccount();
     const suiClient = useSuiClient();
     const [registry, setRegistry] = useState<SuiObjectResponse>();
     const [creatorSubscriptions, setCreatorSubscriptions] = useState<SuiObjectResponse[]>([]);
     const [userSubscriptions, setUserSubscriptions] = useState<SubscriptionArray>([]);
+    const [timeleft, setTimeleft] = useState('')
+    const [expiry, setExpiry] = useState('')
+    const [cost, setCost] = useState(0)
+    const [creator, setCreator] = useState()
+    
     const { data, isPending, isFetching } = useKeyPair();
 
     useEffect(() => {
         if (account) {
             (async () => {
                 const registryResp = await suiClient.getObject({
-                    id: REGISTRY_ID,
+                    id: process.env.NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID,
                     options: {
                         showContent: true,
                     },
                 });
                 setRegistry(registryResp);
 
-                const creatorSubscriptionsResp = await suiClient.multiGetObjects({
+                const subscriptionResp = await suiClient.multiGetObjects({
                     ids: registryResp?.data?.content?.fields.subscriptions,
                     options: {
                         showContent: true,
                     },
                 });
-                setCreatorSubscriptions(creatorSubscriptionsResp);
+                setCreatorSubscriptions(subscriptionResp);
 
-                console.log(creatorSubscriptionsResp);
-                creatorSubscriptionsResp.forEach((creatorSubscription) => {
+                console.log(subscriptionResp);
+                subscriptionResp.forEach((creatorSubscription) => {
                     creatorSubscription.data?.content?.fields.subscriptions.fields.contents.forEach(
-                        (subscription) => {
+                        async subscription => {
                             if (subscription.fields.key == account.address) {
-                                console.log(subscription.fields.value.fields);
+                                const creatorSubscriptionResp = await suiClient.getObject({
+                                    id: subscription.fields.value.fields.creator_subscription_id,
+                                    options: {
+                                        showContent: true,
+                                    },
+                                })
+                                console.log(creatorSubscriptionResp.data)
+                                setCost(creatorSubscriptionResp.data?.content?.fields.subscription_price)
+                                
+                                //const creatorResp = await 
+
+                                const timestamp = parseInt(subscription.fields.value.fields.end_time, 10);
+                                const difference = timestamp - Date.now();
+                                
+                                const seconds = Math.floor(Math.abs(difference) / 1000);
+                                const minutes = Math.floor(seconds / 60);
+                                const hours = Math.floor(minutes / 60);
+                                const days = Math.floor(hours / 24);
+
+                                if (days > 0) {
+                                    setTimeleft(`${days} day${days > 1 ? 's' : ''}`)
+                                } else if (hours > 0) {
+                                    setTimeleft(`${hours} hour${hours > 1 ? 's' : ''}`)
+                                } else if (minutes > 0) {
+                                    setTimeleft(`${minutes} minute${minutes > 1 ? 's' : ''}`)
+                                } else {
+                                    setTimeleft(`${seconds} second${seconds !== 1 ? 's' : ''}`)
+                                }
+
+                                setExpiry(new Date(timestamp).toLocaleString())
+
                                 setUserSubscriptions((prevSubscriptions) => {
                                     const newSubscription: Subscription = {
-                                        creator_subscription_id:
-                                            subscription.fields.value.fields
-                                                .creator_subscription_id,
+                                        creator_subscription_id: subscription.fields.value.fields.creator_subscription_id,
                                         end_time: subscription.fields.value.fields.end_time,
                                         start_time: subscription.fields.value.fields.start_time,
                                     };
@@ -85,15 +116,13 @@ function Subscriptions() {
                     <Card key={subscription.end_time}>
                         <CardHeader>
                             <CardTitle>{subscription.creator_subscription_id}</CardTitle>
-                            <CardDescription>Expiring in x days</CardDescription>
+                            <CardDescription>Expiring in {timeleft}</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <a
-                                href={`https://suiscan.xyz/testnet/object/${subscription}`}
-                                target="_blank"
-                            >
-                                link
-                            </a>
+                            <div className="flex flex-col">
+                                <a href={`https://suiscan.xyz/testnet/object/${subscription}`}target="_blank">link</a>
+                                <span>cost: {cost} $SUI</span>
+                            </div>
                         </CardContent>
                         <CardFooter>
                             <p>Card Footer</p>
