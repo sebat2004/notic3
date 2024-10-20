@@ -353,7 +353,7 @@ export default function CreatorProfile({ params }: { params: Params }) {
                         <CardTitle>Support {creator?.name}!</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex items-center justify-evenly">
+                        <div className="grid auto-cols-max grid-flow-col items-center justify-evenly gap-4 overflow-x-auto">
                             {creatorSubscriptions.length === 0 && (
                                 <p className="mt-4 text-gray-600">
                                     This creator has not set up any subscriptions yet :(
@@ -362,14 +362,33 @@ export default function CreatorProfile({ params }: { params: Params }) {
                             {creatorSubscriptions.map((subscription) => (
                                 <Card
                                     key={subscription.data.content.fields.id.id}
-                                    className="mb-4 flex h-96 w-[25%] flex-col justify-between p-4"
+                                    className="mb-4 flex h-64 w-64 flex-col justify-between p-4"
                                 >
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <h4 className="mb-2 text-2xl font-semibold">
                                                 {subscription.data.content.fields.title}
                                             </h4>
-                                            <p className="text-gray-600">{null}</p>
+                                            <p className="">
+                                                <span>cost: </span>
+                                                <span>
+                                                    {`${
+                                                        subscription.data.content.fields
+                                                            .subscription_price
+                                                    } $SUI`}
+                                                </span>
+                                            </p>
+                                            <p className="">
+                                                <span>duration: </span>
+                                                <span>
+                                                    {parseInt(
+                                                        subscription.data.content.fields
+                                                            .subscription_duration
+                                                    ) /
+                                                        (86400 * 1000)}{' '}
+                                                    days
+                                                </span>
+                                            </p>
                                         </div>
                                     </div>
                                     <Button
