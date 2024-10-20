@@ -11,16 +11,26 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-
+import { useGetCreator } from '@/hooks/use-get-creator';
 import { Image, Video, Type, ChartNoAxesColumn } from 'lucide-react';
 import ContentOption from './components/ui/ContentOption';
 import { TextUploadForm } from './components/TextUploadForm';
-import { useUploadFile } from '@/hooks/queries';
 import Link from 'next/link';
 import ImageUploadForm from './components/ImageUploadForm';
 import VideoUploadForm from './components/VideoUploadForm';
 import CreateProfileForm from './components/CreateProfileForm';
 import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogDescription,
+} from '@/components/ui/dialog';
+import { KeyRound } from 'lucide-react';
+import { SidebarMenuButton } from '@/components/ui/sidebar';
+import { useKeyPair } from '@/hooks/use-key-pair';
 
 const CreatePage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -29,7 +39,7 @@ const CreatePage = () => {
     const [key, setKey] = useState<CryptoKey | null>(null);
     const [iv, setIv] = useState<Uint8Array>(new Uint8Array(12));
     const [blobId, setBlobId] = useState<string | null>(null);
-    const [registered, setRegistered] = useState(false);
+    const [registered, setRegistered] = useState(true);
 
     console.log('PAGE BLOB ID', blobId);
     console.log('PAGE IV', iv);
@@ -37,6 +47,10 @@ const CreatePage = () => {
 
     const suiClient = useSuiClient();
     const account = useCurrentAccount();
+    console.log(account?.address);
+    const { data, isError } = useGetCreator(account?.address);
+    const query = useKeyPair();
+    const { publicKey, privateKey } = query.data || {};
 
     useEffect(() => {
         if (!account) return;
@@ -199,11 +213,7 @@ const CreatePage = () => {
                         </div>
                         <div className="mt-2">
                             <h3 className="text-lg font-semibold">IV:</h3>
-                            <p className="break-all">
-                                {Array.from(iv)
-                                    .map((b) => b.toString(16).padStart(2, '0'))
-                                    .join('')}
-                            </p>
+                            <p className="break-all">{iv}</p>
                         </div>
                         {blobId && (
                             <div className="mt-2">
@@ -220,8 +230,28 @@ const CreatePage = () => {
                     </CardFooter>
                 </Card>
             )}
+            <Dialog>
+                <DialogTrigger asChild>
+                    <SidebarMenuButton className="py-4">
+                        <KeyRound className="mr-2" />
+                        <span className="text-xl font-bold">Secrets</span>
+                    </SidebarMenuButton>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Download</DialogTitle>
+                        <DialogDescription>
+                            Here are your secret RSA keys. Make sure not to share these with
+                            anybody!
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="mt-4 space-y-2 break-words">
+                        <p>Public Key: {localStorage.getItem('notic3-pubkey')}</p>
+                        <p>Private Key: {localStorage.getItem('notic3-privkey')}</p>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
-
 export default CreatePage;

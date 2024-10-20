@@ -38,6 +38,17 @@ const DefaultFileViewer = ({ type, content }) => (
         </a>
     </div>
 );
+// Video File Component
+const VideoFileViewer = ({ content }) => {
+    const blob = new Blob([content], { type: 'video/mp4' });
+    const url = URL.createObjectURL(blob);
+    return (
+        <video controls className="h-auto max-w-full">
+            <source src={url} type="video/mp4" />
+            Your browser does not support the video tag.
+        </video>
+    );
+};
 
 export default function TestDownloadFile() {
     const [blobId, setBlobId] = useState('');
@@ -77,6 +88,10 @@ export default function TestDownloadFile() {
                 return <ImageFileViewer content={result.content} />;
             case 'application/pdf':
                 return <PDFFileViewer content={result.content} />;
+            case 'video/mp4':
+            case 'video/quicktime':
+            case 'video/webm':
+                return <VideoFileViewer content={result.content} />;
             default:
                 return <DefaultFileViewer type={result.type} content={result.content} />;
         }
