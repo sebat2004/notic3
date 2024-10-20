@@ -34,6 +34,7 @@ import { SidebarMenuButton } from '@/components/ui/sidebar';
 import { useKeyPair } from '@/hooks/use-key-pair';
 import { useDownloadUnencryptedFile } from '@/hooks/getdata';
 import { Skeleton } from '@/components/ui/skeleton';
+import { saveAs } from 'file-saver';
 
 const CreatePage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -106,6 +107,12 @@ const CreatePage = () => {
     const privateKeyHex = privateKeyBase64
         ? BytesToHex(DecodeBase64ToBinary(privateKeyBase64))
         : 'Not found';
+
+    const downloadKeypair = () => {
+        const keypairContent = `Public Key: ${publicKeyHex}\n\nPrivate Key: ${privateKeyHex}`;
+        const blob = new Blob([keypairContent], { type: 'text/plain;charset=utf-8' });
+        saveAs(blob, 'keypair.txt');
+    };
 
     return (
         <div className="flex w-full flex-col items-center justify-between gap-4 p-10">
@@ -237,6 +244,27 @@ const CreatePage = () => {
                     </p>
                 </CardFooter>
             </Card>
+
+            <Dialog>
+                <DialogTrigger asChild>
+                    <SidebarMenuButton className="py-4">
+                        <KeyRound className="mr-2" />
+                        <span className="text-xl font-bold">Secrets</span>
+                    </SidebarMenuButton>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Download Keypair</DialogTitle>
+                        <DialogDescription>
+                            Click the button below to download your secret RSA keys. Make sure to
+                            keep this file secure and do not share it with anyone!
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="mt-4">
+                        <Button onClick={downloadKeypair}>Download Keypair</Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
