@@ -33,6 +33,7 @@ import { SidebarMenuButton } from '@/components/ui/sidebar';
 import { useKeyPair } from '@/hooks/use-key-pair';
 import { useDownloadUnencryptedFile } from '@/hooks/getdata';
 import { Skeleton } from '@/components/ui/skeleton';
+import { saveAs } from 'file-saver';
 
 const CreatePage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -105,6 +106,12 @@ const CreatePage = () => {
     const privateKeyHex = privateKeyBase64
         ? BytesToHex(DecodeBase64ToBinary(privateKeyBase64))
         : 'Not found';
+
+    const downloadKeypair = () => {
+        const keypairContent = `Public Key: ${publicKeyHex}\n\nPrivate Key: ${privateKeyHex}`;
+        const blob = new Blob([keypairContent], { type: 'text/plain;charset=utf-8' });
+        saveAs(blob, 'keypair.txt');
+    };
 
     return (
         <div className="flex w-full flex-col items-center justify-between p-10">
@@ -235,16 +242,14 @@ const CreatePage = () => {
                 </DialogTrigger>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Download</DialogTitle>
+                        <DialogTitle>Download Keypair</DialogTitle>
                         <DialogDescription>
-                            Here are your secret RSA keys. Make sure not to share these with
-                            anybody!
+                            Click the button below to download your secret RSA keys. Make sure to
+                            keep this file secure and do not share it with anyone!
                         </DialogDescription>
                     </DialogHeader>
-                    {/* the keys are long as fuck so consider using file-saver -> https://www.npmjs.com/package/file-saver to save them to a file the user can download instead*/}
-                    <div className="mt-4 space-y-2 break-words">
-                        <p>Public Key: {publicKeyHex}</p>
-                        <p>Private Key: {privateKeyHex}</p>
+                    <div className="mt-4">
+                        <Button onClick={downloadKeypair}>Download Keypair</Button>
                     </div>
                 </DialogContent>
             </Dialog>

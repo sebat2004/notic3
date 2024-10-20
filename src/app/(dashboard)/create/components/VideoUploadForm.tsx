@@ -21,9 +21,9 @@ import { ChangeEvent, useState } from 'react';
 import { useUploadFile } from '@/hooks/queries';
 const subscriptions = [
     { label: 'Free', value: 'free' },
-    { label: 'Tier 1', value: 'tier-1' },
-    { label: 'Tier 2', value: 'tier-2' },
-    { label: 'Tier 3', value: 'tier-3' },
+    { label: 'Basic', value: 'basic' },
+    { label: 'Premium', value: 'premium' },
+    { label: 'Pro', value: 'pro' },
 ] as const;
 
 const MAX_UPLOAD_SIZE = 5 * 1024 * 1024; // 5MB

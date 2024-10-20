@@ -21,9 +21,9 @@ import { useUploadFile } from '@/hooks/queries';
 
 const subscriptions = [
     { label: 'Free', value: 'free' },
-    { label: 'Semi-Horny', value: 'semi-horny' },
-    { label: 'Horny', value: 'horny' },
-    { label: 'Very Horny', value: 'very-horny' },
+    { label: 'Basic', value: 'basic' },
+    { label: 'Premium', value: 'premium' },
+    { label: 'Pro', value: 'pro' },
 ] as const;
 
 const MAX_UPLOAD_SIZE = 5 * 1024 * 1024; // 5MB
