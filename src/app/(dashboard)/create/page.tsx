@@ -39,7 +39,7 @@ const CreatePage = () => {
     const [key, setKey] = useState<CryptoKey | null>(null);
     const [iv, setIv] = useState<Uint8Array>(new Uint8Array(12));
     const [blobId, setBlobId] = useState<string | null>(null);
-    const [registered, setRegistered] = useState(true);
+    const [registered, setRegistered] = useState(false);
 
     console.log('PAGE BLOB ID', blobId);
     console.log('PAGE IV', iv);
@@ -47,12 +47,12 @@ const CreatePage = () => {
 
     const suiClient = useSuiClient();
     const account = useCurrentAccount();
-    console.log(account?.address);
-    const { data, isError } = useGetCreator(account?.address);
+
     const query = useKeyPair();
     const { publicKey, privateKey } = query.data || {};
 
     useEffect(() => {
+        console.log('HERE');
         if (!account) return;
         (async () => {
             const res = await suiClient.getObject({
@@ -61,11 +61,12 @@ const CreatePage = () => {
                     showContent: true,
                 },
             });
-            if (res.data?.content?.fields.creators.includes(account.address)) {
-                setRegistered(true);
-            }
+            console.log('REEEEESSSSS', res);
+            res.data?.content?.fields.creators.fields.contents.forEach((creator) => {
+                if (creator.fields.key == account.address) setRegistered(true);
+            });
         })();
-    }, []);
+    }, [account]);
 
     if (!registered) {
         return (
@@ -92,13 +93,13 @@ const CreatePage = () => {
                                 alt="Profile Picture"
                                 className="h-24 w-24 rounded-full"
                             />
-                            <h1 className="mt-2 text-2xl font-semibold">{data?.name}</h1>
+                            <h1 className="mt-2 text-2xl font-semibold">{}</h1>
                             <p className="text-sm text-muted-foreground">Software Developer</p>
                         </div>
                     </CardContent>
                     <CardFooter>
                         <Button asChild>
-                            <Link className="w-full" href={`creator/${data?.address}`} size="lg">
+                            <Link className="w-full" href="" size="lg">
                                 Edit Profile
                             </Link>
                         </Button>
