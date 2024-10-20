@@ -84,7 +84,7 @@ export const useCreators = () => {
         options: { showContent: true },
     });
 
-    const creators = useMemo(() => {
+    const creators: Creator[] = useMemo(() => {
         if (data?.data?.content?.fields.creators.fields.contents) {
             return data.data.content.fields.creators.fields.contents.map((rawCreator: any) => ({
                 name: rawCreator.fields.value.fields.name as string,

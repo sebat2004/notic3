@@ -13,8 +13,6 @@ interface CreatorCardProps {
 export const CreatorCard = ({ creator }: CreatorCardProps) => {
     const { data, isPending } = useDownloadUnencryptedFile(creator.image);
 
-    console.log(data);
-
     return (
         <Card className="mx-auto h-full w-full transform overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
             <CardHeader className="p-4">
@@ -27,8 +25,10 @@ export const CreatorCard = ({ creator }: CreatorCardProps) => {
                     </Avatar>
                     <div>
                         <h3 className="line-clamp-1 text-lg font-semibold">{creator.name}</h3>
-                        <p className="line-clamp-1 text-sm text-muted-foreground">
-                            {creator.address}
+                        <p className="break-all font-mono text-sm text-muted-foreground">
+                            {creator.address.slice(0, Math.ceil(creator.address.length / 2))}
+                            <br />
+                            {creator.address.slice(Math.ceil(creator.address.length / 2))}
                         </p>
                     </div>
                 </div>
