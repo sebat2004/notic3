@@ -23,7 +23,8 @@ async function decryptData(
     key: CryptoKey,
     iv: Uint8Array
 ): Promise<ArrayBuffer> {
-    return await window.crypto.subtle.decrypt(
+    console.log('Decrypting data', encryptedData, key, iv);
+    return await crypto.subtle.decrypt(
         {
             name: 'AES-GCM',
             iv: iv,
@@ -36,9 +37,7 @@ async function decryptData(
 // Function to import key from string
 async function importKeyFromString(keyString: string): Promise<CryptoKey> {
     const keyData = hexToUint8Array(keyString);
-    return await window.crypto.subtle.importKey('raw', keyData, { name: 'AES-GCM' }, false, [
-        'decrypt',
-    ]);
+    return await crypto.subtle.importKey('raw', keyData, { name: 'AES-GCM' }, false, ['decrypt']);
 }
 
 // Function to determine file type and load content
@@ -67,6 +66,7 @@ async function loadFile(
 export const useDownloadFile = (keyString: string, ivString: string) => {
     return useMutation({
         mutationFn: async (blobId: string) => {
+            console.log('Downloading file', blobId, keyString, ivString);
             const response = await fetch(
                 `https://aggregator.walrus-testnet.walrus.space/v1/${blobId}`,
                 {
@@ -76,15 +76,20 @@ export const useDownloadFile = (keyString: string, ivString: string) => {
                     },
                 }
             );
+
             if (!response.ok) {
                 throw new Error('Download failed');
             }
             const base64EncryptedFile = await response.text();
+            console.log(base64EncryptedFile);
             const encryptedArrayBuffer = base64ToArrayBuffer(base64EncryptedFile);
+            console.log('check1');
 
             // Convert key and iv from string to required types
             const key = await importKeyFromString(keyString);
             const iv = hexToUint8Array(ivString);
+
+            console.log('check2');
 
             // Decrypt the file
             const decryptedArrayBuffer = await decryptData(encryptedArrayBuffer, key, iv);

@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { toast } from '@/hooks/use-toast';
+import { toast, useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
     Form,
@@ -17,6 +17,7 @@ import {
 import SubscriptionDropdown from './ui/SubscriptionDropdown';
 import { Input } from '@/components/ui/input';
 import { ChangeEvent, useState } from 'react';
+import { useUploadFile } from '@/hooks/queries';
 
 const subscriptions = [
     { label: 'Free', value: 'free' },
@@ -64,8 +65,22 @@ const formSchema = z.object({
         }, `File size must be less than ${MAX_MB}MB`),
 });
 
-export function ImageUploadForm({ setOpen }: { setOpen: (open: boolean) => void }) {
+export function ImageUploadForm({
+    setOpen,
+    setKey,
+    setIv,
+    setBlobId,
+}: {
+    setOpen: (open: boolean) => void;
+    setKey: (key: string) => void;
+    setIv: (iv: string) => void;
+    setBlobId: (blobId: string) => void;
+}) {
+    const { uploadFileAsync, encryptionIv, encryptionKey } = useUploadFile();
     const [preview, setPreview] = useState('');
+    console.log(encryptionIv, encryptionKey);
+
+    const disableSubmit = !encryptionIv || !encryptionKey;
 
     const form = useForm<z.infer>({
         resolver: zodResolver(formSchema),
@@ -74,17 +89,19 @@ export function ImageUploadForm({ setOpen }: { setOpen: (open: boolean) => void 
         },
     });
 
-    function onSubmit(data: z.infer) {
+    async function onSubmit(data: z.infer) {
         setOpen(false);
         console.log(data);
-        toast({
-            title: 'You submitted the following values:',
-            description: (
-                <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-                    <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-                </pre>
-            ),
-        });
+        setKey(encryptionKey);
+        setIv(encryptionIv);
+
+        const res = await uploadFileAsync(data.file);
+        if (res?.newlyCreated) {
+            setBlobId(res.newlyCreated.blobObject.blobId);
+            console.log('File uploaded successfully', res);
+        } else {
+            console.error('Failed to upload file');
+        }
     }
 
     return (
@@ -151,7 +168,9 @@ export function ImageUploadForm({ setOpen }: { setOpen: (open: boolean) => void 
                         );
                     }}
                 />
-                <Button type="submit">Submit</Button>
+                <Button disabled={disableSubmit} type="submit">
+                    Submit
+                </Button>
             </form>
         </Form>
     );
