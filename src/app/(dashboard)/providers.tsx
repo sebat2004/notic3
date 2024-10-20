@@ -10,6 +10,7 @@ import { SuiClientProvider, WalletProvider } from '@mysten/dapp-kit';
 import { getFullnodeUrl } from '@mysten/sui/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
+import { useKeyPair } from '@/hooks/use-key-pair';
 
 const queryClient = new QueryClient();
 

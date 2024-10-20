@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import { SuiObjectResponse } from '@mysten/sui/client';
+import { useKeyPair } from '@/hooks/use-key-pair';
 
 import {
     Card,
@@ -30,6 +31,7 @@ function Subscriptions() {
     const [registry, setRegistry] = useState<SuiObjectResponse>();
     const [creatorSubscriptions, setCreatorSubscriptions] = useState<SuiObjectResponse[]>([]);
     const [userSubscriptions, setUserSubscriptions] = useState<SubscriptionArray>([]);
+    const { data, isPending, isFetching } = useKeyPair();
 
     useEffect(() => {
         if (account) {
