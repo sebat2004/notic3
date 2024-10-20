@@ -1,5 +1,6 @@
 import { useSuiClientQuery, useSuiClient } from '@mysten/dapp-kit';
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 export interface Creator {
     address: string; // crypto address
@@ -77,23 +78,23 @@ export const SAMPLE_CREATORS: Creator[] = [
     },
 ];
 
-export const fetchCreators = async (subscribedOnly: true) => {
-    const client = useSuiClient();
-    const res = await client.getObject({
+export const useCreators = () => {
+    const { data, isPending, isError, error, refetch } = useSuiClientQuery('getObject', {
         id: process.env.NEXT_PUBLIC_CREATOR_REGISTRY_ID,
-        options: {
-            showContent: true,
-        },
+        options: { showContent: true },
     });
-    return res?.data?.content?.fields.creators;
-};
 
-export const useCreators = (subscribedOnly: boolean = false) => {
-    const { data, isPending, isError, error, refetch } = useSuiClientQuery(
-        'getObject',
-        { id: process.env.NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID },
-        { showContent: true }
-    );
+    const creators: Creator[] = useMemo(() => {
+        if (data?.data?.content?.fields.creators.fields.contents) {
+            return data.data.content.fields.creators.fields.contents.map((rawCreator: any) => ({
+                name: rawCreator.fields.value.fields.name as string,
+                bio: rawCreator.fields.value.fields.bio as string,
+                address: rawCreator.fields.key as string,
+                image: rawCreator.fields.value.fields.picture as string,
+            }));
+        }
+        return [];
+    }, [data]);
 
-    console.log(data);
+    return { creators, isPending, isError, error, refetch };
 };
