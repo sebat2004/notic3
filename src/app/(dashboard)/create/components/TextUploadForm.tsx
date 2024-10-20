@@ -17,7 +17,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import SubscriptionDropdown from './ui/SubscriptionDropdown';
 
-const subscriptions = [{ label: 'Free Plan', value: 'free' }] as const;
+const subscriptions = [
+    { label: 'Free', value: 'free' },
+    { label: 'Basic', value: 'basic' },
+    { label: 'Premium', value: 'premium' },
+    { label: 'Pro', value: 'pro' },
+] as const;
 
 const formSchema = z.object({
     subscription: z.string().min(1, {
