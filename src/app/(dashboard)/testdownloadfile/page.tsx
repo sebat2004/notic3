@@ -1,6 +1,7 @@
 'use client';
 import { useDownloadFile } from '@/hooks/getdata';
 import { useState } from 'react';
+import { useKeyPair } from '@/hooks/use-key-pair';
 
 // Text File Component
 const TextFileViewer = ({ content }) => (
@@ -43,6 +44,7 @@ export default function TestDownloadFile() {
     const [key, setKey] = useState('');
     const [iv, setIv] = useState('');
     const [result, setResult] = useState(null);
+    const { data, isPending, isFetching } = useKeyPair();
 
     const { mutate: downloadFile, error } = useDownloadFile(key, iv);
 

@@ -31,7 +31,6 @@ function Subscriptions() {
     const [registry, setRegistry] = useState<SuiObjectResponse>();
     const [creatorSubscriptions, setCreatorSubscriptions] = useState<SuiObjectResponse[]>([]);
     const [userSubscriptions, setUserSubscriptions] = useState<SubscriptionArray>([]);
-    const { data, isPending, isFetching } = useKeyPair();
 
     useEffect(() => {
         if (account) {
