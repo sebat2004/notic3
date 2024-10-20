@@ -62,6 +62,7 @@ const CreatePage = () => {
                     showContent: true,
                 },
             });
+            console.log(res);
             res.data?.content?.fields.creators.fields.contents.forEach((creator) => {
                 if (creator.fields.key == account.address) {
                     setRegistered(true);
@@ -71,7 +72,7 @@ const CreatePage = () => {
         })();
     }, [account]);
 
-    if (!registered || registered) {
+    if (!registered) {
         return (
             <div className="mx-auto my-10 w-full max-w-lg">
                 <p className="text-center text-4xl font-bold">Create Profile</p>

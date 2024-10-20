@@ -1,10 +1,12 @@
 module notic3::subscription {
     use sui::table::{Self, Table};
-    use sui::clock::{Self, Clock};
+    use sui::clock::{Clock};
     use std::string::{String};
     use sui::vec_map::{Self, VecMap};
-    use sui::coin::{Self, Coin};
+    use sui::coin::{Coin};
     use sui::sui::SUI;
+
+    const EWrongAmount: u64 = 0;
 
     public struct CreatorRegistry has key {
         id: UID,
@@ -146,13 +148,15 @@ module notic3::subscription {
 
     public entry fun subscribe(
         creator_subscription: &mut CreatorSubscription,
-        payment: &mut Coin<SUI>,
         user_public_key: vector<u8>,
+        payment: Coin<SUI>,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
+        assert!(&payment.value() == creator_subscription.subscription_price, EWrongAmount);
+
         let subscriber = tx_context::sender(ctx);
-        let now = clock::timestamp_ms(clock);
+        let now = clock.timestamp_ms();
 
         let subscription = Subscription {
             id: object::new(ctx),
@@ -162,9 +166,7 @@ module notic3::subscription {
             end_time: now + creator_subscription.subscription_duration
         };
 
-        // payment logic
-        let coin_to_send = coin::split(payment, creator_subscription.subscription_price, ctx);
-        transfer::public_transfer(coin_to_send, creator_subscription.creator);
+        transfer::public_transfer(payment, creator_subscription.creator);
 
         vec_map::insert(&mut creator_subscription.subscriptions, subscriber, subscription);
     }
