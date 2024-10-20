@@ -86,7 +86,8 @@ export function CreateProfileForm({ setOpen }: { setOpen: (open: boolean) => voi
             throw new Error('Upload failed');
         }
         const result = await response.json();
-        const blobId = result.alreadyCertified.blobId;
+        console.log(result);
+        const blobId = result.newlyCreated.blobObject.blobId;
 
         const tx = new Transaction();
 

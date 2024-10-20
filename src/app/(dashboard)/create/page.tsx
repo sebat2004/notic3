@@ -52,7 +52,6 @@ const CreatePage = () => {
     const { publicKey, privateKey } = query.data || {};
 
     useEffect(() => {
-        console.log('HERE');
         if (!account) return;
         (async () => {
             const res = await suiClient.getObject({
@@ -61,12 +60,14 @@ const CreatePage = () => {
                     showContent: true,
                 },
             });
-            console.log('REEEEESSSSS', res);
             res.data?.content?.fields.creators.fields.contents.forEach((creator) => {
                 if (creator.fields.key == account.address) setRegistered(true);
             });
         })();
     }, [account]);
+
+    
+
 
     if (!registered) {
         return (
@@ -77,6 +78,34 @@ const CreatePage = () => {
         );
     }
 
+    const DecodeBase64ToBinary = (base64String) => {
+        try {
+          const binaryString = atob(base64String);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          return bytes;
+        } catch (error) {
+          console.error('Error decoding base64:', error);
+          return new Uint8Array();
+        }
+    };
+
+    const BytesToHex = (bytes) => {
+        return bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
+    };
+
+    const publicKeyBase64 = localStorage.getItem('notic3-pubkey');
+    const privateKeyBase64 = localStorage.getItem('notic3-privkey');
+
+    const publicKeyHex = publicKeyBase64 
+    ? BytesToHex(DecodeBase64ToBinary(publicKeyBase64)) 
+    : 'Not found';
+  const privateKeyHex = privateKeyBase64 
+    ? BytesToHex(DecodeBase64ToBinary(privateKeyBase64)) 
+    : 'Not found';
+    
     return (
         <div className="flex w-full flex-col items-center justify-between p-10">
             <div className="flex w-full flex-col items-center justify-center gap-4 lg:flex-row lg:items-start">
@@ -160,45 +189,6 @@ const CreatePage = () => {
                 </Card>
             </div>
 
-            {/* File Upload Section */}
-            {/* <Card className="mt-4 w-full p-3">
-                <CardHeader>
-                    <CardTitle>File Upload</CardTitle>
-                    <CardDescription>Upload and encrypt a file</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex w-full flex-col items-center justify-center">
-                        <Card className="h-[20vh] w-full">
-                            {previewUrl && (
-                                <div className="flex h-full w-full items-center justify-center">
-                                    <img
-                                        src={previewUrl}
-                                        alt="Preview"
-                                        className="max-h-full max-w-full object-contain"
-                                    />
-                                </div>
-                            )}
-                        </Card>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleUpload}
-                            accept="image/*"
-                            className="invisible"
-                        />
-                        <Button
-                            variant="outline"
-                            onClick={handleButtonClick}
-                            disabled={!key}
-                            className="mt-2"
-                        >
-                            Upload File
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card> */}
-
-            {/* Encryption Details */}
             {key && (
                 <Card className="mt-4 w-full">
                     <CardHeader>
@@ -246,9 +236,10 @@ const CreatePage = () => {
                             anybody!
                         </DialogDescription>
                     </DialogHeader>
+                    {/* the keys are long as fuck so consider using file-saver -> https://www.npmjs.com/package/file-saver to save them to a file the user can download instead*/}
                     <div className="mt-4 space-y-2 break-words">
-                        <p>Public Key: {localStorage.getItem('notic3-pubkey')}</p>
-                        <p>Private Key: {localStorage.getItem('notic3-privkey')}</p>
+                        <p>Public Key: {publicKeyHex}</p>
+                        <p>Private Key: {privateKeyHex}</p>
                     </div>
                 </DialogContent>
             </Dialog>

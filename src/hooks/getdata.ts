@@ -4,6 +4,7 @@ import { readChunk } from 'read-chunk';
 
 // Function to convert Base64 to ArrayBuffer
 function base64ToArrayBuffer(base64: string): ArrayBuffer {
+    console.log('Converting base64 to array buffer', base64);
     const binaryString = atob(base64);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
@@ -111,6 +112,27 @@ export const useDownloadFile = (keyString: string, ivString: string) => {
             );
 
             return fileInfo;
+        },
+    });
+};
+
+export const useDownloadUnencryptedFile = () => {
+    return useMutation({
+        mutationFn: async (blobId: string) => {
+            console.log('Downloading unencrypted file', blobId);
+            const response = await fetch(
+                `https://aggregator.walrus-testnet.walrus.space/v1/${blobId}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                }
+            )
+                .then((response) => response.blob())
+                .then((blob) => URL.createObjectURL(blob));
+
+            return response;
         },
     });
 };
