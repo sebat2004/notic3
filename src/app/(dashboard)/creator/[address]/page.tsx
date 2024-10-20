@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import VideoPost from '@/components/VideoPost';
 import { useEffect, useState } from 'react';
 import { useDownloadUnencryptedFile } from '@/hooks/getdata';
+import Link from 'next/link';
 
 type Params = {
     address: string;
@@ -23,20 +24,48 @@ const tiers = [
     {
         title: 'Tier 1',
         price: 5,
-        description: 'Access to exclusive content',
+        description: 'Get access to exclusive blog posts!',
         postAccess: ['Blogs'],
     },
     {
         title: 'Tier 2',
         price: 10,
-        description: 'Access to exclusive content',
+        description: 'Expand your access to images!',
         postAccess: ['Blogs', 'Images'],
     },
     {
         title: 'Tier 3',
         price: 20,
-        description: 'Access to exclusive content',
+        description: 'Unlock all content! Blogs, images, and videos are all yours!',
         postAccess: ['Blogs', 'Images', 'Videos'],
+    },
+];
+
+const posts = [
+    {
+        type: 'image',
+        title: 'Image Post',
+        description: 'This is a placeholder description for the image post.',
+        imageUrl: 'https://i.pravatar.cc/300',
+    },
+    {
+        type: 'video',
+        title: 'Video Post',
+        description: 'This is a placeholder description for the video post.',
+        videoUrl:
+            'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    },
+    {
+        type: 'blog',
+        title: 'Blog Post',
+        description:
+            'Hello World! This is a placeholder description for the blog post. You can replace this with actual content from your backend or smart contract.',
+    },
+    {
+        type: 'image',
+        title: 'Image Post',
+        description: 'This is a placeholder description for the image post.',
+        imageUrl: 'https://i.pravatar.cc/301',
     },
 ];
 
@@ -129,7 +158,13 @@ export default function CreatorProfile({ params }: { params: Params }) {
                                 )}
                             </div>
 
-                            {!registered && <Button>Support Creator</Button>}
+                            {!registered && (
+                                <Button asChild>
+                                    <Link scroll={true} href="#support">
+                                        Support Creator
+                                    </Link>
+                                </Button>
+                            )}
                         </div>
                         <div className="mb-6 flex items-center justify-between">
                             <div>
@@ -158,32 +193,90 @@ export default function CreatorProfile({ params }: { params: Params }) {
                                 <TabsTrigger value="blogs">Blogs</TabsTrigger>
                                 <TabsTrigger value="polls">Polls</TabsTrigger>
                             </TabsList>
-                            <TabsContent value="all">
-                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                    <ImagePost
-                                        imageUrl="https://i.pravatar.cc/300"
-                                        title="Image Post"
-                                        description="This is a placeholder description for the image post."
-                                    />
-                                    <BlogPost
-                                        title="Blog Post"
-                                        description="Hello World! This is a placeholder description for the blog post. You can replace this with actual content from your backend or smart contract."
-                                    />
-                                    <VideoPost
-                                        videoUrl="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-                                        title="Video Post"
-                                        description="This is a placeholder description for the video post."
-                                    />
-                                </div>
+                            <TabsContent
+                                className="grid grid-cols-1 gap-4 md:grid-cols-2"
+                                value="all"
+                            >
+                                {posts.map((post) => {
+                                    if (post.type === 'image') {
+                                        return (
+                                            <ImagePost
+                                                key={post.title}
+                                                imageUrl={post.imageUrl}
+                                                title={post.title}
+                                                description={post.description}
+                                            />
+                                        );
+                                    } else if (post.type === 'video') {
+                                        return (
+                                            <VideoPost
+                                                key={post.title}
+                                                videoUrl={post.videoUrl}
+                                                title={post.title}
+                                                description={post.description}
+                                            />
+                                        );
+                                    } else {
+                                        return (
+                                            <BlogPost
+                                                key={post.title}
+                                                title={post.title}
+                                                description={post.description}
+                                            />
+                                        );
+                                    }
+                                })}
                             </TabsContent>
-                            <TabsContent value="images">
-                                <div>Images</div>
+
+                            <TabsContent
+                                className="grid grid-cols-1 gap-4 md:grid-cols-2"
+                                value="images"
+                            >
+                                {posts.map((post) => {
+                                    if (post.type === 'image') {
+                                        return (
+                                            <ImagePost
+                                                key={post.title}
+                                                imageUrl={post.imageUrl}
+                                                title={post.title}
+                                                description={post.description}
+                                            />
+                                        );
+                                    }
+                                })}
                             </TabsContent>
-                            <TabsContent value="videos">
-                                <div>Videos</div>
+                            <TabsContent
+                                className="grid grid-cols-1 gap-4 md:grid-cols-2"
+                                value="videos"
+                            >
+                                {posts.map((post) => {
+                                    if (post.type === 'video') {
+                                        return (
+                                            <VideoPost
+                                                key={post.title}
+                                                videoUrl={post.videoUrl}
+                                                title={post.title}
+                                                description={post.description}
+                                            />
+                                        );
+                                    }
+                                })}
                             </TabsContent>
-                            <TabsContent value="blogs">
-                                <div>Blogs</div>
+                            <TabsContent
+                                className="grid grid-cols-1 gap-4 md:grid-cols-2"
+                                value="blogs"
+                            >
+                                {posts.map((post) => {
+                                    if (post.type === 'blog') {
+                                        return (
+                                            <BlogPost
+                                                key={post.title}
+                                                title={post.title}
+                                                description={post.description}
+                                            />
+                                        );
+                                    }
+                                })}
                             </TabsContent>
                             <TabsContent value="polls">
                                 <div>Polls</div>
@@ -191,28 +284,38 @@ export default function CreatorProfile({ params }: { params: Params }) {
                         </Tabs>
                     </CardContent>
                 </Card>
-                <Card className="mt-4">
+                <Card className="mt-4" id="support">
                     <CardHeader>
                         <CardTitle>Support {creator?.name}!</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center justify-evenly">
                             {tiers.map((tier) => (
-                                <Card key={tier.title} className="mb-4 flex flex-col gap-10 p-4">
+                                <Card
+                                    key={tier.title}
+                                    className="mb-4 flex h-96 w-[25%] flex-col justify-between p-4"
+                                >
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <h4 className="text-lg font-semibold">{tier.title}</h4>
+                                            <h4 className="mb-2 text-2xl font-semibold">
+                                                {tier.title}
+                                            </h4>
                                             <p className="text-gray-600">{tier.description}</p>
 
-                                            <div className="mt-2 flex gap-2">
+                                            <ul className="mt-5 flex flex-col gap-2">
+                                                <h4 className="text-md font-semibold">
+                                                    Access to:
+                                                </h4>
                                                 {tier.postAccess.map((post) => (
-                                                    <Badge key={post}>{post}</Badge>
+                                                    <dd key={post}>{post}</dd>
                                                 ))}
-                                            </div>
+                                            </ul>
                                         </div>
                                     </div>
                                     <Button variant="outline">
-                                        <h4 className="text-lg font-semibold">${tier.price}</h4>
+                                        <h4 className="text-md font-semibold">
+                                            Access for ${tier.price}
+                                        </h4>
                                     </Button>
                                 </Card>
                             ))}
