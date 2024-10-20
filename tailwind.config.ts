@@ -70,8 +70,20 @@ const config: Config = {
                 md: 'calc(var(--radius) - 2px)',
                 sm: 'calc(var(--radius) - 4px)',
             },
+            animation: {
+                slide: 'slide 3s ease-in-out infinite alternate',
+                'slide-reverse': 'slide 4s ease-in-out infinite alternate-reverse',
+                'slide-slow': 'slide 5s ease-in-out infinite alternate',
+            },
+            keyframes: {
+                slide: {
+                    '0%': { transform: 'translateX(-25%)' },
+                    '100%': { transform: 'translateX(25%)' },
+                },
+            },
         },
     },
     plugins: [require('tailwindcss-animate')],
 };
+
 export default config;
