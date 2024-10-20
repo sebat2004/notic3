@@ -28,32 +28,34 @@ type Params = {
 };
 
 const posts = [
-    {
-        type: 'image',
-        title: 'Image Post',
-        description: 'This is a placeholder description for the image post.',
-        imageUrl: 'https://i.pravatar.cc/300',
-    },
-    {
-        type: 'video',
-        title: 'Video Post',
-        description: 'This is a placeholder description for the video post.',
-        videoUrl:
-            'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-    },
-    {
-        type: 'blog',
-        title: 'Blog Post',
-        description:
-            'Hello World! This is a placeholder description for the blog post. You can replace this with actual content from your backend or smart contract.',
-    },
-    {
-        type: 'image',
-        title: 'Image Post',
-        description: 'This is a placeholder description for the image post.',
-        imageUrl: 'https://i.pravatar.cc/301',
-    },
+    // {
+    //     type: 'image',
+    //     title: 'Image Post',
+    //     description: 'This is a placeholder description for the image post.',
+    //     imageUrl: 'https://i.pravatar.cc/300',
+    // },
+    // {
+    //     type: 'video',
+    //     title: 'Video Post',
+    //     description: 'This is a placeholder description for the video post.',
+    //     videoUrl:
+    //         'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    // },
+    // {
+    //     type: 'blog',
+    //     title: 'Blog Post',
+    //     description:
+    //         'Hello World! This is a placeholder description for the blog post. You can replace this with actual content from your backend or smart contract.',
+    // },
+    // {
+    //     type: 'image',
+    //     title: 'Image Post',
+    //     description: 'This is a placeholder description for the image post.',
+    //     imageUrl: 'https://i.pravatar.cc/301',
+    // },
 ];
+
+
 
 export default function CreatorProfile({ params }: { params: Params }) {
     const address = params!.address;
@@ -252,6 +254,11 @@ export default function CreatorProfile({ params }: { params: Params }) {
                                 className="grid grid-cols-1 gap-4 md:grid-cols-2"
                                 value="all"
                             >
+                                {posts.length === 0 && (
+                                    <div className=" text-gray-500">
+                                        No posts found. Check back later!
+                                    </div>
+                                )}
                                 {posts.map((post) => {
                                     if (post.type === 'image') {
                                         return (

@@ -1,7 +1,6 @@
 'use client';
-
 import React, { useEffect, useRef, useState } from 'react';
-
+import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -11,8 +10,8 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { useGetCreator } from '@/hooks/use-get-creator';
-import { Image, Video, Type, ChartNoAxesColumn } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Image, Video, Type, ChartNoAxesColumn, KeyRound } from 'lucide-react';
 import ContentOption from './components/ui/ContentOption';
 import Link from 'next/link';
 import { TextUploadForm } from './components/TextUploadForm';
@@ -20,7 +19,6 @@ import { SubscriptionUploadForm } from './components/SubscriptionUploadForm';
 import ImageUploadForm from './components/ImageUploadForm';
 import VideoUploadForm from './components/VideoUploadForm';
 import CreateProfileForm from './components/CreateProfileForm';
-import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import {
     Dialog,
     DialogContent,
@@ -29,29 +27,22 @@ import {
     DialogTrigger,
     DialogDescription,
 } from '@/components/ui/dialog';
-import { KeyRound } from 'lucide-react';
 import { SidebarMenuButton } from '@/components/ui/sidebar';
 import { useKeyPair } from '@/hooks/use-key-pair';
 import { useDownloadUnencryptedFile } from '@/hooks/getdata';
-import { Skeleton } from '@/components/ui/skeleton';
 import { saveAs } from 'file-saver';
 
 const CreatePage = () => {
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const [encryptedBlob, setEncryptedBlob] = useState<Blob | null>(null);
+    const [registered, setRegistered] = useState(false);
+    const [creator, setCreator] = useState(null);
     const [key, setKey] = useState<CryptoKey | null>(null);
     const [iv, setIv] = useState<Uint8Array | null>(null);
     const [blobId, setBlobId] = useState<string | null>(null);
-    const [registered, setRegistered] = useState(false);
-    const [creator, setCreator] = useState(null);
 
     const suiClient = useSuiClient();
     const account = useCurrentAccount();
     const { data } = useDownloadUnencryptedFile(creator?.picture);
-
-    const query = useKeyPair();
-    const { publicKey, privateKey } = query.data || {};
+    const { data: keyPairData } = useKeyPair();
 
     useEffect(() => {
         if (!account) return;
@@ -62,7 +53,6 @@ const CreatePage = () => {
                     showContent: true,
                 },
             });
-            console.log(res);
             res.data?.content?.fields.creators.fields.contents.forEach((creator) => {
                 if (creator.fields.key == account.address) {
                     setRegistered(true);
@@ -71,15 +61,6 @@ const CreatePage = () => {
             });
         })();
     }, [account]);
-
-    if (!registered) {
-        return (
-            <div className="mx-auto my-10 w-full max-w-lg">
-                <p className="text-center text-4xl font-bold">Create Profile</p>
-                <CreateProfileForm setOpen={() => {}} />
-            </div>
-        );
-    }
 
     const DecodeBase64ToBinary = (base64String) => {
         try {
@@ -115,6 +96,26 @@ const CreatePage = () => {
         saveAs(blob, 'keypair.txt');
     };
 
+    if (!account) {
+        return (
+            <Alert className="m-4 text-4xl">
+                <AlertTitle>No Account Connected</AlertTitle>
+                <AlertDescription>
+                    Please connect your wallet to access the Create Page and manage your profile.
+                </AlertDescription>
+            </Alert>
+        );
+    }
+
+    if (!registered) {
+        return (
+            <div className="mx-auto my-10 w-full max-w-lg">
+                <p className="text-center text-4xl font-bold">Create Profile</p>
+                <CreateProfileForm setOpen={() => {}} />
+            </div>
+        );
+    }
+
     return (
         <div className="flex w-full flex-col items-center justify-between gap-4 p-10">
             <Card className="h-full w-full p-2">
@@ -125,24 +126,24 @@ const CreatePage = () => {
                 <CardContent>
                     <div className="flex flex-col items-center">
                         <img
-                            src="https://i.pravatar.cc/300"
+                            src={data || "https://i.pravatar.cc/300"}
                             alt="Profile Picture"
                             className="h-24 w-24 rounded-full"
                         />
-                        <h1 className="mt-2 text-2xl font-semibold">{}</h1>
-                        <p className="text-sm text-muted-foreground">Software Developer</p>
+                        <h1 className="mt-2 text-2xl font-semibold">{creator?.name || "Your Name"}</h1>
+                        <p className="text-sm text-muted-foreground">{creator?.bio || "Your Bio"}</p>
                     </div>
                 </CardContent>
                 <CardFooter>
                     <Button asChild>
-                        <Link className="w-full" href="" size="lg">
+                        <Link className="w-full" href="/edit-profile" size="lg">
                             Edit Profile
                         </Link>
                     </Button>
                 </CardFooter>
             </Card>
+
             <div className="flex w-full items-center justify-between gap-4 lg:flex-row lg:items-start">
-                {/* Profile Preview Card */}
                 <Card className="h-full w-full p-3 lg:w-[50%]">
                     <CardHeader>
                         <CardTitle>Create Subscription</CardTitle>
@@ -211,6 +212,7 @@ const CreatePage = () => {
                     </CardFooter>
                 </Card>
             </div>
+
             <Card className="mt-4 min-h-72 w-full">
                 <CardHeader>
                     <CardTitle>Encryption Details</CardTitle>
@@ -269,4 +271,5 @@ const CreatePage = () => {
         </div>
     );
 };
+
 export default CreatePage;
