@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { fileTypeFromBuffer } from 'file-type';
 import { readChunk } from 'read-chunk';
 
@@ -116,23 +116,21 @@ export const useDownloadFile = (keyString: string, ivString: string) => {
     });
 };
 
-export const useDownloadUnencryptedFile = () => {
-    return useMutation({
-        mutationFn: async (blobId: string) => {
-            console.log('Downloading unencrypted file', blobId);
-            const response = await fetch(
-                `https://aggregator.walrus-testnet.walrus.space/v1/${blobId}`,
-                {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'text/plain',
-                    },
-                }
-            )
-                .then((response) => response.blob())
-                .then((blob) => URL.createObjectURL(blob));
-
-            return response;
+const fetchUnecryptedFile = async (blobId: string) => {
+    const response = await fetch(`https://aggregator.walrus-testnet.walrus.space/v1/${blobId}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'text/plain',
         },
+    });
+
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
+};
+
+export const useDownloadUnencryptedFile = (blobId: string) => {
+    return useQuery({
+        queryKey: ['walrus', blobId],
+        queryFn: ({ queryKey }) => fetchUnecryptedFile(queryKey[1]),
     });
 };

@@ -59,15 +59,6 @@ const formSchema = z.object({
         }, `File size must be less than ${MAX_MB}MB`),
 });
 
-function convertFileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = (error) => reject(error);
-    });
-}
-
 export function CreateProfileForm({ setOpen }: { setOpen: (open: boolean) => void }) {
     const [preview, setPreview] = useState('');
     const client = useSuiClient();
@@ -85,7 +76,7 @@ export function CreateProfileForm({ setOpen }: { setOpen: (open: boolean) => voi
             `https://walrus-testnet-publisher.nodes.guru/v1/store?epochs=5`,
             {
                 method: 'PUT',
-                body: data.avatar,
+                body: btoa(data.avatar),
                 headers: {
                     'Content-Type': 'text/plain',
                 },
