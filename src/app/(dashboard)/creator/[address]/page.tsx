@@ -19,6 +19,27 @@ type Params = {
     address: string;
 };
 
+const tiers = [
+    {
+        title: 'Tier 1',
+        price: 5,
+        description: 'Access to exclusive content',
+        postAccess: ['Blogs'],
+    },
+    {
+        title: 'Tier 2',
+        price: 10,
+        description: 'Access to exclusive content',
+        postAccess: ['Blogs', 'Images'],
+    },
+    {
+        title: 'Tier 3',
+        price: 20,
+        description: 'Access to exclusive content',
+        postAccess: ['Blogs', 'Images', 'Videos'],
+    },
+];
+
 export default function CreatorProfile({ params }: { params: Params }) {
     const address = params!.address;
     const account = useCurrentAccount();
@@ -26,7 +47,8 @@ export default function CreatorProfile({ params }: { params: Params }) {
     const suiClient = useSuiClient();
     const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
     const [registered, setRegistered] = useState(false);
-    const { mutate, data, isLoading } = useDownloadUnencryptedFile();
+    const [userAvatarBlob, setUserAvatarBlob] = useState<string | null>(null);
+    const { data, isLoading } = useDownloadUnencryptedFile(userAvatarBlob);
 
     useEffect(() => {
         if (!account) return;
@@ -43,12 +65,7 @@ export default function CreatorProfile({ params }: { params: Params }) {
                     if (creator.fields.key == account.address) setRegistered(true);
                     const profileImage = creator.fields.value.fields.picture;
                     if (profileImage) {
-                        mutate(profileImage, {
-                            onSuccess: (data) => {
-                                console.log('DATA', data);
-                                setProfileImageUrl(data);
-                            },
-                        });
+                        setUserAvatarBlob(profileImage);
                     }
                 }
             });
@@ -84,7 +101,7 @@ export default function CreatorProfile({ params }: { params: Params }) {
                 <CardHeader className="bg-gradient-to-r from-black to-gray-500 text-white">
                     <div className="flex items-center space-x-4">
                         <Avatar className="h-20 w-20 border-4 border-white">
-                            <AvatarImage src={profileImageUrl} alt="Creator profile" />
+                            <AvatarImage src={data} alt="Creator profile" />
                             <AvatarFallback>CP</AvatarFallback>
                         </Avatar>
                         <div>
@@ -172,6 +189,34 @@ export default function CreatorProfile({ params }: { params: Params }) {
                                 <div>Polls</div>
                             </TabsContent>
                         </Tabs>
+                    </CardContent>
+                </Card>
+                <Card className="mt-4">
+                    <CardHeader>
+                        <CardTitle>Support {creator?.name}!</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center justify-evenly">
+                            {tiers.map((tier) => (
+                                <Card key={tier.title} className="mb-4 flex flex-col gap-10 p-4">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h4 className="text-lg font-semibold">{tier.title}</h4>
+                                            <p className="text-gray-600">{tier.description}</p>
+
+                                            <div className="mt-2 flex gap-2">
+                                                {tier.postAccess.map((post) => (
+                                                    <Badge key={post}>{post}</Badge>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Button variant="outline">
+                                        <h4 className="text-lg font-semibold">${tier.price}</h4>
+                                    </Button>
+                                </Card>
+                            ))}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
