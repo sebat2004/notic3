@@ -18,25 +18,19 @@ import { Input } from '@/components/ui/input';
 import { Transaction } from '@mysten/sui/transactions';
 import { useSignTransaction, useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 
-
 const formSchema = z.object({
     title: z.string().min(1, {
         message: 'Subscription is required.',
     }),
-    price: z
-        .string()
-        .min(0, {
-            message: 'Price must be positive.',
-        }),
-    length: z
-        .string()
-        .min(0, {
-            message: 'Length must be positive',
-        })
+    price: z.string().min(0, {
+        message: 'Price must be positive.',
+    }),
+    length: z.string().min(0, {
+        message: 'Length must be positive',
+    }),
 });
 
 export function SubscriptionUploadForm() {
-
     const { mutateAsync: signTransaction } = useSignTransaction();
     const client = useSuiClient();
 
@@ -67,12 +61,11 @@ export function SubscriptionUploadForm() {
                 tx.pure.u64(values.length * 24 * 60 * 60 * 1000),
             ],
         });
-        
-        const { bytes, signature, reportTransactionEffects } =
-            await signTransaction({
-                transaction: tx,
-                chain: 'sui:testnet',
-            });
+
+        const { bytes, signature, reportTransactionEffects } = await signTransaction({
+            transaction: tx,
+            chain: 'sui:testnet',
+        });
 
         const executeResult = await client.executeTransactionBlock({
             transactionBlock: bytes,

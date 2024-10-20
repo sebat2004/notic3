@@ -87,7 +87,10 @@ export function CreateProfileForm({ setOpen }: { setOpen: (open: boolean) => voi
         }
         const result = await response.json();
         console.log(result);
-        const blobId = result.newlyCreated == undefined ? result.alreadyCertified.blobId : result.newlyCreated.blobObject.blobId;
+        const blobId =
+            result.newlyCreated == undefined
+                ? result.alreadyCertified.blobId
+                : result.newlyCreated.blobObject.blobId;
 
         const tx = new Transaction();
 

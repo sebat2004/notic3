@@ -9,9 +9,9 @@ export interface Creator {
     image: string;
 }
 
-export const useCreators = async() => {
+export const useCreators = async () => {
     const suiClient = useSuiClient();
-    
+
     const registryResp = await suiClient.getObject({
         id: process.env.NEXT_PUBLIC_CREATOR_REGISTRY_ID,
         options: {
@@ -19,11 +19,11 @@ export const useCreators = async() => {
         },
     });
 
-    const ids = []
-    registryResp.data.content.fields.creators.fields.contents.forEach(c => {
-        ids.push(c.fields.value)
-    })
-    
+    const ids = [];
+    registryResp.data.content.fields.creators.fields.contents.forEach((c) => {
+        ids.push(c.fields.value);
+    });
+
     const usersResp = await suiClient.multiGetObjects({
         ids,
         options: {

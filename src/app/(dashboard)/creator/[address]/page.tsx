@@ -57,7 +57,7 @@ export default function CreatorProfile({ params }: { params: Params }) {
     const account = useCurrentAccount();
     const [creator, setCreator] = useState<any>();
     const suiClient = useSuiClient();
-    const [exportedKey, setExportKey] = useState<ArrayBuffer>()
+    const [exportedKey, setExportKey] = useState<ArrayBuffer>();
     const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
     const [registered, setRegistered] = useState(false);
     const [userAvatarBlob, setUserAvatarBlob] = useState<string | null>(null);
@@ -74,7 +74,7 @@ export default function CreatorProfile({ params }: { params: Params }) {
                     showContent: true,
                 },
             });
-            console.log(res)
+            console.log(res);
             res.data?.content?.fields.creators.fields.contents.forEach(async (creator) => {
                 if (creator.fields.key === address) {
                     setCreator(creator.fields.value.fields);
@@ -91,9 +91,12 @@ export default function CreatorProfile({ params }: { params: Params }) {
                     showContent: true,
                 },
             });
-            const subscriptions = registryResp.data?.content?.fields.subscriptions.fields.contents.filter(subscription => subscription.fields.value.fields.creator == account?.address)
-            console.log(subscriptions)
-            setCreatorSubscriptions(subscriptions)
+            const subscriptions =
+                registryResp.data?.content?.fields.subscriptions.fields.contents.filter(
+                    (subscription) => subscription.fields.value.fields.creator == account?.address
+                );
+            console.log(subscriptions);
+            setCreatorSubscriptions(subscriptions);
         })();
     }, [account]);
 
@@ -101,25 +104,24 @@ export default function CreatorProfile({ params }: { params: Params }) {
     // Validate the address (this is a simple check, you might want to use a more robust validation)
     // const isValidAddress = address && /^0x[a-fA-F0-9]{40}$/.test(address);
 
-    const handleSubmit = async subscription => {
-        console.log(subscription)
-        
+    const handleSubmit = async (subscription) => {
+        console.log(subscription);
+
         const tx = new Transaction();
 
         tx.moveCall({
             target: `${process.env.NEXT_PUBLIC_PACKAGE_ID}::subscription::subscribe`,
             arguments: [
-                tx.object(subscription.fields.key), 
+                tx.object(subscription.fields.key),
                 tx.object('0x193ada1713774928f1800945532dadf102fd269af83ded780ff537febb838ddf'),
                 tx.pure(new Uint8Array()),
-                tx.object('0x6')
+                tx.object('0x6'),
             ],
         });
-        const { bytes, signature, reportTransactionEffects } =
-            await signTransaction({
-                transaction: tx,
-                chain: 'sui:testnet',
-            });
+        const { bytes, signature, reportTransactionEffects } = await signTransaction({
+            transaction: tx,
+            chain: 'sui:testnet',
+        });
 
         const executeResult = await suiClient.executeTransactionBlock({
             transactionBlock: bytes,
@@ -133,7 +135,7 @@ export default function CreatorProfile({ params }: { params: Params }) {
         reportTransactionEffects(executeResult.rawEffects!);
 
         console.log(executeResult);
-    }
+    };
 
     const isValidAddress = true;
 
@@ -366,7 +368,7 @@ export default function CreatorProfile({ params }: { params: Params }) {
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center justify-evenly">
-                            {creatorSubscriptions.map(subscription => (
+                            {creatorSubscriptions.map((subscription) => (
                                 <Card
                                     key={subscription.fields.key}
                                     className="mb-4 flex h-96 w-[25%] flex-col justify-between p-4"
@@ -379,7 +381,10 @@ export default function CreatorProfile({ params }: { params: Params }) {
                                             <p className="text-gray-600">{null}</p>
                                         </div>
                                     </div>
-                                    <Button onClick={() => handleSubmit(subscription)} variant="outline">
+                                    <Button
+                                        onClick={() => handleSubmit(subscription)}
+                                        variant="outline"
+                                    >
                                         <ShoppingBag /> Checkout
                                     </Button>
                                 </Card>

@@ -22,8 +22,8 @@ import { useCurrentAccount, useSuiClient, useSignTransaction } from '@mysten/dap
 import { Transaction } from '@mysten/sui/transactions';
 
 interface Subscription {
-    label: string,
-    value: string
+    label: string;
+    value: string;
 }
 
 const MAX_UPLOAD_SIZE = 5 * 1024 * 1024; // 5MB
@@ -93,44 +93,50 @@ export function ImageUploadForm({
     });
 
     useEffect(() => {
-        if (!account) return
-        (async() => {
+        if (!account) return;
+        (async () => {
             const registryResp = await suiClient.getObject({
                 id: process.env.NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID,
                 options: {
                     showContent: true,
                 },
             });
-            console.log(registryResp)
+            console.log(registryResp);
             const subscriptionResp = await suiClient.multiGetObjects({
                 ids: registryResp.data?.content?.fields.subscriptions,
                 options: {
                     showContent: true,
                 },
             });
-            const filtered = subscriptionResp.filter(s => s.data?.content.fields.creator == account.address)
+            const filtered = subscriptionResp.filter(
+                (s) => s.data?.content.fields.creator == account.address
+            );
             const formattedSubscriptions: Subscription[] = [];
 
-            filtered.forEach(async subscription => {
+            filtered.forEach(async (subscription) => {
                 formattedSubscriptions.push({
                     label: subscription.data.content.fields.title,
                     value: subscription.data.content.fields.id.id,
-                })
-            })
-            setCreatorSubscriptions(formattedSubscriptions)
-        })()
-    }, [])
+                });
+            });
+            setCreatorSubscriptions(formattedSubscriptions);
+        })();
+    }, []);
 
     async function onSubmit(data: z.infer) {
         setOpen(false);
         setKey(encryptionKey);
         setIv(encryptionIv);
 
-        console.log("data", data)
+        console.log('data', data);
 
         const res = await uploadFileAsync(data.file);
         if (res?.newlyCreated) {
-            setBlobId(res.newlyCreated == undefined ? res.alreadyCertified.blobId : res.newlyCreated.blobObject.blobId);
+            setBlobId(
+                res.newlyCreated == undefined
+                    ? res.alreadyCertified.blobId
+                    : res.newlyCreated.blobObject.blobId
+            );
             console.log('File uploaded successfully', res);
         } else {
             console.error('Failed to upload file');
@@ -142,31 +148,36 @@ export function ImageUploadForm({
                 showContent: true,
             },
         });
-        const s = registryResp.data?.content?.fields.subscriptions.fields.contents.filter(subscription => subscription.fields.value.fields.creator == account?.address)
-        const userAddresses = []
-        const encKeys = []
-        const encIvs = []
-        s.fields.contents.forEach(subscription => {
-            console.log(subscription)
-        })
+        const s = registryResp.data?.content?.fields.subscriptions.fields.contents.filter(
+            (subscription) => subscription.fields.value.fields.creator == account?.address
+        );
+        const userAddresses = [];
+        const encKeys = [];
+        const encIvs = [];
+        s.fields.contents.forEach((subscription) => {
+            console.log(subscription);
+        });
         const tx = new Transaction();
 
         tx.moveCall({
             target: `${process.env.NEXT_PUBLIC_PACKAGE_ID}::subscription::content`,
             arguments: [
                 tx.object(data.subscription),
-                tx.pure.string(res.newlyCreated == undefined ? res.alreadyCertified.blobId : res.newlyCreated.blobObject.blobId),
-                tx.pure.vector("string", []),
-                tx.pure.vector("string", ["1","2"]),
-                tx.pure.vector("string", ["1","2"]),
+                tx.pure.string(
+                    res.newlyCreated == undefined
+                        ? res.alreadyCertified.blobId
+                        : res.newlyCreated.blobObject.blobId
+                ),
+                tx.pure.vector('string', []),
+                tx.pure.vector('string', ['1', '2']),
+                tx.pure.vector('string', ['1', '2']),
             ],
         });
 
-        const { bytes, signature, reportTransactionEffects } =
-            await signTransaction({
-                transaction: tx,
-                chain: 'sui:testnet',
-            });
+        const { bytes, signature, reportTransactionEffects } = await signTransaction({
+            transaction: tx,
+            chain: 'sui:testnet',
+        });
 
         const executeResult = await suiClient.executeTransactionBlock({
             transactionBlock: bytes,
@@ -181,12 +192,13 @@ export function ImageUploadForm({
         reportTransactionEffects(executeResult.rawEffects!);
 
         console.log(executeResult);
-
     }
 
     return (
         <>
-            { creatorSubscriptions == undefined ? <div>Create a subscription first!</div> : 
+            {creatorSubscriptions == undefined ? (
+                <div>Create a subscription first!</div>
+            ) : (
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                         <div className="flex items-center justify-between px-2">
@@ -255,9 +267,8 @@ export function ImageUploadForm({
                         </Button>
                     </form>
                 </Form>
-            } 
+            )}
         </>
-    
     );
 }
 

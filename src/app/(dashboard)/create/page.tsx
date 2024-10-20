@@ -138,7 +138,9 @@ const CreatePage = () => {
                 <Card className="h-full w-full p-3 lg:w-[50%]">
                     <CardHeader>
                         <CardTitle>Create Subscription</CardTitle>
-                        <CardDescription>Create subscription tiers for specific content</CardDescription>
+                        <CardDescription>
+                            Create subscription tiers for specific content
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <SubscriptionUploadForm />
