@@ -245,27 +245,6 @@ const CreatePage = () => {
                     </p>
                 </CardFooter>
             </Card>
-
-            <Dialog>
-                <DialogTrigger asChild>
-                    <SidebarMenuButton className="py-4">
-                        <KeyRound className="mr-2" />
-                        <span className="text-xl font-bold">Secrets</span>
-                    </SidebarMenuButton>
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Download Keypair</DialogTitle>
-                        <DialogDescription>
-                            Click the button below to download your secret RSA keys. Make sure to
-                            keep this file secure and do not share it with anyone!
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="mt-4">
-                        <Button onClick={downloadKeypair}>Download Keypair</Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 };
