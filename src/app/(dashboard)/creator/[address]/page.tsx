@@ -128,7 +128,7 @@ export default function CreatorProfile({ params }: { params: Params }) {
 
         const tx = new Transaction();
         const [coin] = tx.splitCoins(tx.gas, [tx.pure(u64)]);
-        tx.setGasBudget(100000000)
+        tx.setGasBudget(100000000);
         const array = new Uint8Array(32);
         crypto.getRandomValues(array);
 
