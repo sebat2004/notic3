@@ -66,9 +66,6 @@ const CreatePage = () => {
         })();
     }, [account]);
 
-    
-
-
     if (!registered) {
         return (
             <div className="mx-auto my-10 w-full max-w-lg">
@@ -80,15 +77,15 @@ const CreatePage = () => {
 
     const DecodeBase64ToBinary = (base64String) => {
         try {
-          const binaryString = atob(base64String);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-          return bytes;
+            const binaryString = atob(base64String);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes;
         } catch (error) {
-          console.error('Error decoding base64:', error);
-          return new Uint8Array();
+            console.error('Error decoding base64:', error);
+            return new Uint8Array();
         }
     };
 
@@ -99,13 +96,13 @@ const CreatePage = () => {
     const publicKeyBase64 = localStorage.getItem('notic3-pubkey');
     const privateKeyBase64 = localStorage.getItem('notic3-privkey');
 
-    const publicKeyHex = publicKeyBase64 
-    ? BytesToHex(DecodeBase64ToBinary(publicKeyBase64)) 
-    : 'Not found';
-  const privateKeyHex = privateKeyBase64 
-    ? BytesToHex(DecodeBase64ToBinary(privateKeyBase64)) 
-    : 'Not found';
-    
+    const publicKeyHex = publicKeyBase64
+        ? BytesToHex(DecodeBase64ToBinary(publicKeyBase64))
+        : 'Not found';
+    const privateKeyHex = privateKeyBase64
+        ? BytesToHex(DecodeBase64ToBinary(privateKeyBase64))
+        : 'Not found';
+
     return (
         <div className="flex w-full flex-col items-center justify-between p-10">
             <div className="flex w-full flex-col items-center justify-center gap-4 lg:flex-row lg:items-start">
