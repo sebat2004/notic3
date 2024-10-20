@@ -69,7 +69,7 @@ export default function CreatorProfile({ params }: { params: Params }) {
     const { mutateAsync: signTransaction } = useSignTransaction();
     console.log(userAvatarBlob);
 
-    const keyPairQuery = useKeyPair()
+    const keyPairQuery = useKeyPair();
 
     useEffect(() => {
         if (!account) return;
@@ -126,8 +126,6 @@ export default function CreatorProfile({ params }: { params: Params }) {
     const handleSubmit = async (subscription) => {
         console.log(subscription);
 
-        
-
         const u64 = bcs
             .u64()
             .serialize(BigInt(subscription.data.content.fields.subscription_price) * MIST_PER_SUI)
@@ -136,15 +134,15 @@ export default function CreatorProfile({ params }: { params: Params }) {
         const tx = new Transaction();
         const [coin] = tx.splitCoins(tx.gas, [tx.pure(u64)]);
         tx.setGasBudget(100000000);
-        const exportedKey = await crypto.subtle.exportKey('spki', keyPairQuery.data!.publicKey)
-        const k = new Uint8Array(exportedKey)
+        const exportedKey = await crypto.subtle.exportKey('spki', keyPairQuery.data!.publicKey);
+        const k = new Uint8Array(exportedKey);
         tx.moveCall({
             target: `${process.env.NEXT_PUBLIC_PACKAGE_ID}::subscription::subscribe`,
             arguments: [
                 tx.object(subscription.data.objectId),
                 tx.pure(bcs.vector(bcs.u8()).serialize(k)),
                 coin,
-                tx.object('0x6')
+                tx.object('0x6'),
             ],
         });
         const { bytes, signature, reportTransactionEffects } = await signTransaction({

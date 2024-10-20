@@ -1,6 +1,6 @@
 'use client';
 
-import crypto from 'crypto'
+import crypto from 'crypto';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -151,7 +151,7 @@ export function ImageUploadForm({
                 showContent: true,
             },
         });
-        console.log(subscriptionResp)
+        console.log(subscriptionResp);
 
         const userAddresses: string[] = [];
         const encKeys: string[] = [];
@@ -159,20 +159,23 @@ export function ImageUploadForm({
 
         function encryptWithPublicKey(publicKey, message) {
             const buffer = Buffer.from(message, 'utf8');
-            const encrypted = crypto.publicEncrypt({
-                key: publicKey,
-                padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-                oaepHash: 'sha256'
-            }, buffer);
+            const encrypted = crypto.publicEncrypt(
+                {
+                    key: publicKey,
+                    padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+                    oaepHash: 'sha256',
+                },
+                buffer
+            );
             return encrypted.toString('base64');
         }
 
-        subscriptionResp.data.content.fields.subscriptions.fields.contents.forEach(sub => {
-            console.log(sub.fields.value)
-            userAddresses.push()
-            encKeys.push()
-            encIvs.push()
-        })
+        subscriptionResp.data.content.fields.subscriptions.fields.contents.forEach((sub) => {
+            console.log(sub.fields.value);
+            userAddresses.push();
+            encKeys.push();
+            encIvs.push();
+        });
 
         const tx = new Transaction();
 
@@ -180,7 +183,11 @@ export function ImageUploadForm({
             target: `${process.env.NEXT_PUBLIC_PACKAGE_ID}::subscription::content`,
             arguments: [
                 tx.object(data.subscription),
-                tx.pure.string(res.newlyCreated == undefined ? res.alreadyCertified.blobId : res.newlyCreated.blobObject.blobId),
+                tx.pure.string(
+                    res.newlyCreated == undefined
+                        ? res.alreadyCertified.blobId
+                        : res.newlyCreated.blobObject.blobId
+                ),
                 tx.pure.vector('string', userAddresses),
                 tx.pure.vector('string', encKeys),
                 tx.pure.vector('string', encIvs),
