@@ -52,7 +52,7 @@ const CreatePage = () => {
     const { publicKey, privateKey } = query.data || {};
 
     useEffect(() => {
-        console.log("HERE")
+        console.log('HERE');
         if (!account) return;
         (async () => {
             const res = await suiClient.getObject({
@@ -61,10 +61,10 @@ const CreatePage = () => {
                     showContent: true,
                 },
             });
-            console.log("REEEEESSSSS", res)
-            res.data?.content?.fields.creators.fields.contents.forEach(creator => {
+            console.log('REEEEESSSSS', res);
+            res.data?.content?.fields.creators.fields.contents.forEach((creator) => {
                 if (creator.fields.key == account.address) setRegistered(true);
-            })
+            });
         })();
     }, [account]);
 
