@@ -48,7 +48,6 @@ export function SubscriptionUploadForm() {
     async function onSubmit(values: z.infer) {
         // Do something with the form values.
         // ✅ This will be type-safe and validated.
-        console.log(values);
 
         const tx = new Transaction();
 
@@ -85,7 +84,7 @@ export function SubscriptionUploadForm() {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                <div className="flex flex-col items-center justify-between px-2">
+                <div className="flex flex-col items-center justify-between gap-3 px-2">
                     <FormField
                         control={form.control}
                         name="title"

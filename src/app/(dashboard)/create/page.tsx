@@ -31,6 +31,7 @@ import { SidebarMenuButton } from '@/components/ui/sidebar';
 import { useKeyPair } from '@/hooks/use-key-pair';
 import { useDownloadUnencryptedFile } from '@/hooks/getdata';
 import { saveAs } from 'file-saver';
+import { Creator, useCreators } from '@/hooks/use-creators';
 
 const CreatePage = () => {
     const [registered, setRegistered] = useState(false);
@@ -38,29 +39,34 @@ const CreatePage = () => {
     const [key, setKey] = useState<CryptoKey | null>(null);
     const [iv, setIv] = useState<Uint8Array | null>(null);
     const [blobId, setBlobId] = useState<string | null>(null);
+    const [registered, setRegistered] = useState(false);
+    const [creator, setCreator] = useState<Creator | null>(null);
 
     const suiClient = useSuiClient();
     const account = useCurrentAccount();
-    const { data } = useDownloadUnencryptedFile(creator?.picture);
+    const { data } = useDownloadUnencryptedFile(creator?.image);
+    const creators = useCreators();
     const { data: keyPairData } = useKeyPair();
 
     useEffect(() => {
         if (!account) return;
-        (async () => {
-            const res = await suiClient.getObject({
-                id: process.env.NEXT_PUBLIC_CREATOR_REGISTRY_ID,
-                options: {
-                    showContent: true,
-                },
-            });
-            res.data?.content?.fields.creators.fields.contents.forEach((creator) => {
-                if (creator.fields.key == account.address) {
-                    setRegistered(true);
-                    setCreator(creator.fields.value.fields);
-                }
-            });
-        })();
-    }, [account]);
+        console.log(creators);
+        creators.forEach((creator) => {
+            if (creator.address === account.address) {
+                setRegistered(true);
+                setCreator(creator);
+            }
+        });
+    }, [account, creators]);
+
+    if (!registered) {
+        return (
+            <div className="mx-auto my-10 w-full max-w-lg">
+                <p className="text-center text-4xl font-bold">Create Profile</p>
+                <CreateProfileForm setOpen={() => {}} />
+            </div>
+        );
+    }
 
     const DecodeBase64ToBinary = (base64String) => {
         try {
@@ -136,7 +142,7 @@ const CreatePage = () => {
                 </CardContent>
                 <CardFooter>
                     <Button asChild>
-                        <Link className="w-full" href="/edit-profile" size="lg">
+                        <Link className="w-full" href={`creator/${account?.address}`} size="lg">
                             Edit Profile
                         </Link>
                     </Button>
@@ -247,27 +253,6 @@ const CreatePage = () => {
                     </p>
                 </CardFooter>
             </Card>
-
-            <Dialog>
-                <DialogTrigger asChild>
-                    <SidebarMenuButton className="py-4">
-                        <KeyRound className="mr-2" />
-                        <span className="text-xl font-bold">Secrets</span>
-                    </SidebarMenuButton>
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Download Keypair</DialogTitle>
-                        <DialogDescription>
-                            Click the button below to download your secret RSA keys. Make sure to
-                            keep this file secure and do not share it with anyone!
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="mt-4">
-                        <Button onClick={downloadKeypair}>Download Keypair</Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 };
