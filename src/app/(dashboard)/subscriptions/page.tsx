@@ -15,7 +15,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useCreators } from '@/hooks/use-creators';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Navigation, SquareArrowOutUpRight } from 'lucide-react';
+import { Car, Navigation, SquareArrowOutUpRight, ScanEye } from 'lucide-react';
 
 interface Subscription {
     creator_subscription_id: string;
@@ -137,7 +137,7 @@ function Subscriptions() {
     return (
         <div className="flex w-full flex-col items-center justify-start gap-10 p-10">
             <h1 className="text-2xl font-bold">Your Subscriptions</h1>
-            <div className="flex flex-col">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {userSubscriptionsWithInfo.map((subscription) => (
                     <Card key={subscription.end_time}>
                         <CardHeader>
@@ -146,31 +146,50 @@ function Subscriptions() {
                             </CardTitle>
                             <CardDescription>
                                 <div className="flex flex-col gap-2">
-                                    <h2>{subscription.creator_subscription_id}</h2>
+                                    {/* <h2>{subscription.creator_subscription_id}</h2> */}
                                     <h2>Expiring in {calculateTimeLeft(subscription.end_time)}</h2>
                                 </div>
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex flex-col">
-                                <a
-                                    href={`https://suiscan.xyz/testnet/object/${subscription.creator_subscription_id}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    View on SuiScan
-                                </a>
+                            <div className="flex flex-col gap-5">
                                 <span>Cost: {subscription.cost} $SUI</span>
-                                <Button asChild variant="outline" size="lg">
-                                    <Link href={`creator/${subscription.creator_id}`}>
-                                        View Creator
-                                        <SquareArrowOutUpRight />
-                                    </Link>
-                                </Button>
+                                <div className="flex items-center justify-between gap-3">
+                                    <Button asChild className="w-full" size="lg">
+                                        <Link href={`creator/${subscription.creator_id}`}>
+                                            View Creator
+                                            <SquareArrowOutUpRight />
+                                        </Link>
+                                    </Button>
+                                    <Button asChild variant="outline" className="w-full" size="lg">
+                                        <Link
+                                            href={`https://suiscan.xyz/testnet/object/${subscription.creator_subscription_id}`}
+                                        >
+                                            View on SuiScan
+                                            <ScanEye />
+                                        </Link>
+                                    </Button>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
                 ))}
+                <Card className="flex flex-col justify-between gap-2">
+                    <CardHeader>
+                        <CardTitle>Find Another Creator</CardTitle>
+                        <CardDescription>
+                            Find your next favorite creator by navigating to the Explore page!
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button asChild variant="outline" size="lg">
+                            <Link href="/explore">
+                                Explore Other Creators
+                                <SquareArrowOutUpRight />
+                            </Link>
+                        </Button>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );

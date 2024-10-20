@@ -41,18 +41,18 @@ const posts = [
     //     videoUrl:
     //         'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
     // },
-    // {
-    //     type: 'blog',
-    //     title: 'Blog Post',
-    //     description:
-    //         'Hello World! This is a placeholder description for the blog post. You can replace this with actual content from your backend or smart contract.',
-    // },
-    // {
-    //     type: 'image',
-    //     title: 'Image Post',
-    //     description: 'This is a placeholder description for the image post.',
-    //     imageUrl: 'https://i.pravatar.cc/301',
-    // },
+    {
+        type: 'blog',
+        title: 'Blog Post',
+        description:
+            'Hello World! This is a placeholder description for the blog post. You can replace this with actual content from your backend or smart contract.',
+    },
+    {
+        type: 'image',
+        title: 'Image Post',
+        description: 'This is a placeholder description for the image post.',
+        imageUrl: 'https://i.pravatar.cc/301',
+    },
 ];
 
 export default function CreatorProfile({ params }: { params: Params }) {
