@@ -15,7 +15,7 @@ export const CreatorCard = ({ creator }: CreatorCardProps) => {
             <CardHeader className="p-4">
                 <div className="flex items-center space-x-4">
                     <Avatar className="h-16 w-16">
-                        <AvatarImage src={creator.image} alt={creator.name} />
+                        {/* {isPending && <AvatarImage src={url} alt={creator.name} />} */}
                         <AvatarFallback>
                             <User className="h-8 w-8" />
                         </AvatarFallback>
@@ -29,9 +29,7 @@ export const CreatorCard = ({ creator }: CreatorCardProps) => {
                 </div>
             </CardHeader>
             <CardContent className="p-4 pt-0">
-                <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">
-                    {creator.description}
-                </p>
+                <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">{creator.bio}</p>
                 <Link href={`/creator/${creator.address}`}>
                     <Button variant="outline" className="w-full">
                         <ExternalLink className="mr-2 h-4 w-4" />
