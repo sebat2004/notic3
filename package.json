@@ -10,6 +10,7 @@
         "prepare": "husky"
     },
     "dependencies": {
+        "@dotlottie/react-player": "^1.6.19",
         "@hookform/resolvers": "^3.9.0",
         "@mysten/dapp-kit": "^0.14.27",
         "@mysten/sui": "^1.13.0",
