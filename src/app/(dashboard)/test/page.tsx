@@ -11,13 +11,6 @@ const Test = () => {
     const client = useSuiClient();
     const account = useCurrentAccount();
 
-    const NEXT_PUBLIC_PACKAGE_ID =
-        '0x45b40cab6aaafecbc4ddf0c17b5dd72e38115fdbf380e239c2becbd95ff12adc';
-    const NEXT_PUBLIC_CREATOR_REGISTRY_ID =
-        '0xf79b92569bd58e6c1edf9f650169ba83697aac2c047370252ef449162013208c';
-    const NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID =
-        '0x09bdc71d7bd19f655a9570f55a47936569020b25b560c6fa5d41563c0470cb26';
-
     return (
         <div>
             {account && (

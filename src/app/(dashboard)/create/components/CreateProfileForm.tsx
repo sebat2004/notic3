@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -16,7 +17,8 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
+import { Transaction } from '@mysten/sui/transactions';
+import { useSignTransaction, useSuiClient } from '@mysten/dapp-kit';
 
 const MAX_UPLOAD_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_MB = MAX_UPLOAD_SIZE / 1024 / 1024;
@@ -68,6 +70,8 @@ function convertFileToBase64(file: File): Promise<string> {
 
 export function CreateProfileForm({ setOpen }: { setOpen: (open: boolean) => void }) {
     const [preview, setPreview] = useState('');
+    const client = useSuiClient();
+    const { mutateAsync: signTransaction } = useSignTransaction();
 
     const form = useForm<z.infer>({
         resolver: zodResolver(formSchema),
@@ -76,7 +80,53 @@ export function CreateProfileForm({ setOpen }: { setOpen: (open: boolean) => voi
 
     async function onSubmit(data: z.infer) {
         setOpen(false);
-        console.log(await convertFileToBase64(data.avatar));
+
+        const response = await fetch(
+            `https://walrus-testnet-publisher.nodes.guru/v1/store?epochs=5`,
+            {
+                method: 'PUT',
+                body: data.avatar,
+                headers: {
+                    'Content-Type': 'text/plain',
+                },
+            }
+        );
+        if (!response.ok) {
+            throw new Error('Upload failed');
+        }
+        const result = await response.json();
+        const blobId = result.alreadyCertified.blobId;
+
+        const tx = new Transaction();
+
+        tx.moveCall({
+            target: `${process.env.NEXT_PUBLIC_PACKAGE_ID}::subscription::register_creator`,
+            arguments: [
+                tx.object(process.env.NEXT_PUBLIC_CREATOR_REGISTRY_ID),
+                tx.pure.string(data.username),
+                tx.pure.string(blobId),
+                tx.pure.string(data.bio),
+            ],
+        });
+
+        const { bytes, signature, reportTransactionEffects } = await signTransaction({
+            transaction: tx,
+            chain: 'sui:testnet',
+        });
+
+        const executeResult = await client.executeTransactionBlock({
+            transactionBlock: bytes,
+            signature,
+            options: {
+                showRawEffects: true,
+                showObjectChanges: true,
+            },
+        });
+
+        reportTransactionEffects(executeResult.rawEffects!);
+
+        console.log(executeResult);
+
         toast({
             title: 'You submitted the following values:',
             description: (

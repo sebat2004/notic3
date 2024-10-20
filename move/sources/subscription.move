@@ -6,7 +6,7 @@ module notic3::subscription {
 
     public struct CreatorRegistry has key {
         id: UID,
-        creators: vector<address>
+        creators: VecMap<address, Creator>
     }
 
     public struct Creator has key, store {
@@ -26,7 +26,7 @@ module notic3::subscription {
         ctx: &mut TxContext
     ) {
         let sender = tx_context::sender(ctx);
-        if (!vector::contains(&registry.creators, &sender)) {
+        if (!vec_map::contains(&registry.creators, &sender)) {
             let creator = Creator { 
                 id: object::new(ctx),
                 creator_address: sender,
@@ -35,8 +35,7 @@ module notic3::subscription {
                 bio,
                 subscriptions: vector::empty()
             };
-            vector::push_back(&mut registry.creators, creator.creator_address);
-            transfer::share_object(creator);
+            vec_map::insert(&mut registry.creators, creator.creator_address, creator);
         }
     }
 
@@ -57,6 +56,7 @@ module notic3::subscription {
     public struct Subscription has key, store {
         id: UID,
         creator_subscription_id: ID,
+        user_public_key: vector<u8>,
         start_time: u64,
         end_time: u64
     }
@@ -83,7 +83,7 @@ module notic3::subscription {
 
         let creatorRegistry = CreatorRegistry {
             id: object::new(ctx),
-            creators: vector::empty(),
+            creators: vec_map::empty(),
         };
         transfer::share_object(creatorRegistry);
     }
@@ -142,6 +142,7 @@ module notic3::subscription {
 
     public entry fun subscribe(
         self: &mut CreatorSubscription,
+        user_public_key: vector<u8>,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
@@ -150,6 +151,7 @@ module notic3::subscription {
 
         let subscription = Subscription {
             id: object::new(ctx),
+            user_public_key,
             creator_subscription_id: object::uid_to_inner(&self.id),
             start_time: now,
             end_time: now + self.subscription_duration

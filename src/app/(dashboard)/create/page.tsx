@@ -15,7 +15,6 @@ import {
 import { Image, Video, Type, ChartNoAxesColumn } from 'lucide-react';
 import ContentOption from './components/ui/ContentOption';
 import { TextUploadForm } from './components/TextUploadForm';
-import { useGetCreator } from '@/hooks/use-get-creator';
 import { useUploadFile } from '@/hooks/queries';
 import Link from 'next/link';
 import ImageUploadForm from './components/ImageUploadForm';
@@ -40,8 +39,8 @@ const CreatePage = () => {
     const account = useCurrentAccount();
 
     useEffect(() => {
-        if (!account) return
-        (async() => {
+        if (!account) return;
+        (async () => {
             const res = await suiClient.getObject({
                 id: process.env.NEXT_PUBLIC_CREATOR_REGISTRY_ID,
                 options: {
@@ -49,10 +48,9 @@ const CreatePage = () => {
                 },
             });
             if (res.data?.content?.fields.creators.includes(account.address)) {
-                setRegistered(true)
+                setRegistered(true);
             }
-        })()
-        
+        })();
     }, []);
 
     if (!registered) {
