@@ -21,16 +21,6 @@ import ImageUploadForm from './components/ImageUploadForm';
 import VideoUploadForm from './components/VideoUploadForm';
 import CreateProfileForm from './components/CreateProfileForm';
 import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-    DialogDescription,
-} from '@/components/ui/dialog';
-import { KeyRound } from 'lucide-react';
-import { SidebarMenuButton } from '@/components/ui/sidebar';
 import { useKeyPair } from '@/hooks/use-key-pair';
 import { useDownloadUnencryptedFile } from '@/hooks/getdata';
 import { Skeleton } from '@/components/ui/skeleton';
