@@ -39,7 +39,7 @@ const CreatePage = () => {
 
     useEffect(() => {
         if (!account) return;
-        const currentCreator = creators.find(c => c.address === account.address);
+        const currentCreator = creators.find((c) => c.address === account.address);
         if (currentCreator) {
             setRegistered(true);
             setCreator(currentCreator);
@@ -214,8 +214,8 @@ const EncryptionDetailsCard = ({ key, iv, blobId }) => (
         </CardContent>
         <CardFooter>
             <p className="mt-32 text-sm text-red-500">
-                Warning: Exposing encryption keys is not secure. This is for demonstration
-                purposes only.
+                Warning: Exposing encryption keys is not secure. This is for demonstration purposes
+                only.
             </p>
         </CardFooter>
     </Card>
