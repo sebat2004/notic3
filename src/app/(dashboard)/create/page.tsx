@@ -41,10 +41,6 @@ const CreatePage = () => {
     const [blobId, setBlobId] = useState<string | null>(null);
     const [registered, setRegistered] = useState(false);
 
-    console.log('PAGE BLOB ID', blobId);
-    console.log('PAGE IV', iv);
-    console.log('PAGE KEY', key);
-
     const suiClient = useSuiClient();
     const account = useCurrentAccount();
 
@@ -125,7 +121,7 @@ const CreatePage = () => {
                     </CardContent>
                     <CardFooter>
                         <Button asChild>
-                            <Link className="w-full" href="" size="lg">
+                            <Link className="w-full" href={`creator/${account?.address}`} size="lg">
                                 Edit Profile
                             </Link>
                         </Button>
