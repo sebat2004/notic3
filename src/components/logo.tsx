@@ -5,5 +5,10 @@ interface LogoProps {
 }
 
 export const Logo = ({ className }: LogoProps) => {
-    return <p className={twMerge('font-mono text-4xl font-bold', className)}>n̈otic3</p>;
+    return (
+        <p className={twMerge('font-mono text-4xl font-bold', className)}>
+            n̈otic3
+            <span className="text-blue-700">.</span>
+        </p>
+    );
 };

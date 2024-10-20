@@ -37,6 +37,8 @@ jspm_packages
 .node_repl_history
 .next
 
-.env*
+.env
+.env.local
+
 build/
 Move.lock

@@ -4,21 +4,57 @@ module notic3::subscription {
     use std::string::{String};
     use sui::vec_map::{Self, VecMap};
 
+    public struct CreatorRegistry has key {
+        id: UID,
+        creators: vector<ID>
+    }
+
+    public struct Creator has key, store {
+        id: UID,
+        creator_address: address,
+        name: String,
+        picture: String,
+        bio: String,
+        subscriptions: vector<CreatorSubscription>
+    }
+
+    public entry fun register_creator(
+        registry: &mut CreatorRegistry,
+        name: String,
+        picture: String,
+        bio: String,
+        ctx: &mut TxContext
+    ) {
+        let creator = Creator { 
+            id: object::new(ctx),
+            creator_address: tx_context::sender(ctx),
+            name,
+            picture,
+            bio,
+            subscriptions: vector::empty()
+        };
+        let creator_id = object::id(&creator);
+        vector::push_back(&mut registry.creators, creator_id);
+
+        transfer::share_object(creator);
+    }
+
     public struct CreatorSubscriptionRegistry has key {
         id: UID,
         subscriptions: vector<ID>,
     }
 
-    public struct CreatorSubscription has key {
+    public struct CreatorSubscription has key, store {
         id: UID,
         creator: address,
-        content: Table<String, Content>,
+        content: vector<Content>,
         subscriptions: VecMap<address, Subscription>,
         subscription_price: u64,
         subscription_duration: u64
     }
 
-    public struct Subscription has store, drop {
+    public struct Subscription has key, store {
+        id: UID,
         creator_subscription_id: ID,
         start_time: u64,
         end_time: u64
@@ -26,21 +62,32 @@ module notic3::subscription {
 
     public struct Content has key, store {
         id: UID,
-        hash: String,
-        salt: String,
-        blobId: String,
-        enc_sym_keys: Option<Table<address, u64>>
+        blob_id: String,
+        encrypted_blob_data: Table<address, EncryptedBlobData>
+    }
+
+    public struct EncryptedBlobData has key, store {
+        id: UID,
+        user_address: address,
+        enc_iv: String,
+        enc_key: String,
     }
 
     fun init(ctx: &mut TxContext) {
-        let registry = CreatorSubscriptionRegistry {
+        let creatorSubscriptionRegistry = CreatorSubscriptionRegistry {
             id: object::new(ctx),
             subscriptions: vector::empty(),
         };
-        transfer::share_object(registry);
+        transfer::share_object(creatorSubscriptionRegistry);
+
+        let creatorRegistry = CreatorRegistry {
+            id: object::new(ctx),
+            creators: vector::empty(),
+        };
+        transfer::share_object(creatorRegistry);
     }
 
-    public fun initialize(
+    public entry fun initialize(
         self: &mut CreatorSubscriptionRegistry,
         subscription_price: u64,
         subscription_duration: u64,
@@ -50,56 +97,46 @@ module notic3::subscription {
             id: object::new(ctx),
             creator: tx_context::sender(ctx),
             subscriptions: vec_map::empty(),
-            content: table::new(ctx),
+            content: vector::empty(),
             subscription_price,
             subscription_duration
         };
         let subscription_id = object::id(&subscription);
         transfer::share_object(subscription);
 
-        vector::push_back(&mut self.subscriptions, subscription_id)
+        vector::push_back(&mut self.subscriptions, subscription_id);
     }
 
     public entry fun content(
         self: &mut CreatorSubscription,
-        content_hash: String,
-        content_salt: String,
-        content_blob_id: String,
+        blob_id: String,
+        user_addresses: vector<address>,
+        enc_ivs: vector<String>,
+        enc_keys: vector<String>,
         ctx: &mut TxContext
     ) {
-        let new_content = Content {
+        let mut new_content = Content {
             id: object::new(ctx),
-            hash: content_hash,
-            salt: content_salt,
-            blobId: content_blob_id,
-            enc_sym_keys: option::none()
+            blob_id,
+            encrypted_blob_data: table::new(ctx)
         };
-        table::add(&mut self.content, content_hash, new_content);
-    }
-
-    public entry fun content_enc(
-        self: &mut CreatorSubscription,
-        content_hash: String,
-        enc_keys: vector<u64>,
-        ctx: &mut TxContext,
-    ) {
-        assert!(table::contains(&self.content, content_hash), 0);
-        let content = table::borrow_mut(&mut self.content, content_hash);
-
-        let subscribers = vec_map::keys(&self.subscriptions);
-        let len = vector::length(&subscribers);
-
-        option::fill(&mut content.enc_sym_keys, table::new(ctx));
-        let enc_sym_keys = option::borrow_mut(&mut content.enc_sym_keys);
 
         let mut i = 0;
+        let len = vector::length(&user_addresses);
         while (i < len) {
-            let subscriber = *vector::borrow(&subscribers, i);
-            assert!(i < vector::length(&enc_keys), 1); // Ensure we have an encrypted key for this subscriber
-            let enc_key = vector::borrow(&enc_keys, i);
-            table::add(enc_sym_keys, subscriber, *enc_key);
+            let user_address = *vector::borrow(&user_addresses, i);
+            let enc_iv = *vector::borrow(&enc_ivs, i);
+            let enc_key = *vector::borrow(&enc_keys, i);
+            let d = EncryptedBlobData {
+                id: object::new(ctx),
+                user_address,
+                enc_iv,
+                enc_key
+            };
+            table::add(&mut new_content.encrypted_blob_data, user_address, d);
             i = i + 1;
         };
+        vector::push_back(&mut self.content, new_content);
     }
 
     public entry fun subscribe(
@@ -111,34 +148,11 @@ module notic3::subscription {
         let now = clock::timestamp_ms(clock);
 
         let subscription = Subscription {
+            id: object::new(ctx),
             creator_subscription_id: object::uid_to_inner(&self.id),
             start_time: now,
             end_time: now + self.subscription_duration
         };
         vec_map::insert(&mut self.subscriptions, subscriber, subscription);
-    }
-
-    public fun is_subscribed(self: &CreatorSubscription, subscriber: address, clock: &Clock): bool {
-        if (vec_map::contains(&self.subscriptions, &subscriber)) {
-            let subscription = vec_map::get(&self.subscriptions, &subscriber);
-            clock::timestamp_ms(clock) <= subscription.end_time
-        } else {
-            false
-        }
-    }
-
-    public fun get_subscription_end(self: &CreatorSubscription, subscriber: address): u64 {
-        let subscription = vec_map::get(&self.subscriptions, &subscriber);
-        subscription.end_time
-    }
-
-    public entry fun cancel_subscription(
-        self: &mut CreatorSubscription,
-        ctx: &mut TxContext
-    ) {
-        let subscriber = tx_context::sender(ctx);
-        assert!(vec_map::contains(&self.subscriptions, &subscriber), 0);
-        vec_map::remove(&mut self.subscriptions, &subscriber);
-        // Here you might handle refunds or other cancellation logic
     }
 }

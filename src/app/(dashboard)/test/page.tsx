@@ -5,14 +5,18 @@ import { Transaction } from '@mysten/sui/transactions';
 import { useSignTransaction, useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 
 const Test = () => {
-    const PACKAGE_ID = '0x993f1f7eee655c9c8bf383d3cfc155541a464149d531c9066853ac1ad1549126';
-    const REGISTRY_ID = '0xcb2f1a519d9e2b8b3ff64a68803931143de2425b8ba3afd4726cd8de33eb8dab';
-
     const { mutateAsync: signTransaction } = useSignTransaction();
     const [signature, setSignature] = useState('');
     const [creatorSubscriptionId, setCreatorSubscriptionId] = useState<string | null>(null);
     const client = useSuiClient();
     const account = useCurrentAccount();
+
+    const NEXT_PUBLIC_PACKAGE_ID =
+        '0x45b40cab6aaafecbc4ddf0c17b5dd72e38115fdbf380e239c2becbd95ff12adc';
+    const NEXT_PUBLIC_CREATOR_REGISTRY_ID =
+        '0xf79b92569bd58e6c1edf9f650169ba83697aac2c047370252ef449162013208c';
+    const NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID =
+        '0x09bdc71d7bd19f655a9570f55a47936569020b25b560c6fa5d41563c0470cb26';
 
     return (
         <div>
@@ -23,16 +27,16 @@ const Test = () => {
                             onClick={async () => {
                                 const tx = new Transaction();
 
-                                const [creatorSubscription] = tx.moveCall({
-                                    target: `${PACKAGE_ID}::subscription::initialize`,
+                                tx.moveCall({
+                                    target: `${process.env.NEXT_PUBLIC_PACKAGE_ID}::subscription::initialize`,
                                     arguments: [
-                                        tx.object(REGISTRY_ID),
+                                        tx.object(
+                                            process.env.NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID
+                                        ),
                                         tx.pure.u64(100),
                                         tx.pure.u64(30 * 24 * 60 * 60 * 1000),
                                     ],
                                 });
-
-                                // setCreatorSubscriptionId(creatorSubscription.NestedResult.)
 
                                 const { bytes, signature, reportTransactionEffects } =
                                     await signTransaction({
@@ -70,7 +74,7 @@ const Test = () => {
                                 const tx = new Transaction();
 
                                 tx.moveCall({
-                                    target: `${PACKAGE_ID}::subscription::subscribe`,
+                                    target: `${process.env.NEXT_PUBLIC_PACKAGE_ID}::subscription::subscribe`,
                                     arguments: [tx.object(creatorSubscriptionId), tx.object('0x6')],
                                 });
                                 const { bytes, signature, reportTransactionEffects } =

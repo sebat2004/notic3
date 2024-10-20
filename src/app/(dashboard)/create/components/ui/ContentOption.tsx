@@ -16,11 +16,17 @@ const ContentOption = ({
     Form,
     tooltipText,
     formTitle,
+    setIv,
+    setKey,
+    setBlobId,
 }: {
     Icon: React.ElementType;
     Form: React.ElementType;
     tooltipText: string;
     formTitle: 'Text' | 'Image' | 'Video' | 'Poll';
+    setIv?: (iv: Uint8Array) => void;
+    setKey?: (key: CryptoKey) => void;
+    setBlobId?: (blobId: string) => void;
 }) => {
     const [open, setOpen] = useState(false);
 
@@ -36,7 +42,12 @@ const ContentOption = ({
                         </DialogTrigger>
                         <DialogContent>
                             <DialogTitle>{formTitle}</DialogTitle>
-                            <Form setOpen={setOpen} />
+                            <Form
+                                setOpen={setOpen}
+                                setBlobId={setBlobId}
+                                setIv={setIv}
+                                setKey={setKey}
+                            />
                         </DialogContent>
                     </Dialog>
                 </TooltipTrigger>

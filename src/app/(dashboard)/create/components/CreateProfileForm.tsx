@@ -4,27 +4,19 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { toast, useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
 } from '@/components/ui/form';
-import SubscriptionDropdown from './ui/SubscriptionDropdown';
 import { Input } from '@/components/ui/input';
-import { ChangeEvent, useState } from 'react';
-import { useUploadFile } from '@/hooks/queries';
-
-const subscriptions = [
-    { label: 'Free', value: 'free' },
-    { label: 'Semi-Horny', value: 'semi-horny' },
-    { label: 'Horny', value: 'horny' },
-    { label: 'Very Horny', value: 'very-horny' },
-] as const;
+import { useState } from 'react';
 
 const MAX_UPLOAD_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_MB = MAX_UPLOAD_SIZE / 1024 / 1024;
@@ -44,19 +36,19 @@ function getImageData(event: ChangeEvent) {
 }
 
 const formSchema = z.object({
-    title: z
+    username: z
         .string()
-        .min(2, {
-            message: 'Title must be at least 2 characters.',
+        .min(3, {
+            message: 'Name must be at least 2 characters.',
         })
-        .max(100, {
-            message: 'Title must be at most 100 characters.',
+        .max(99, {
+            message: 'Name must be under 100 characters.',
         }),
-    subscription: z.string().min(1, {
-        message: 'Subscription is required.',
+    bio: z.string().min(1, {
+        message: 'Bio is required.',
     }),
-    file: z
-        .instanceof(File)
+    avatar: z
+        .instanceof(File, { message: 'Required' })
         .refine((file) => {
             return ACCEPTED_FILE_TYPES.includes(file.type);
         }, 'File must be a JPEG, PNG, or WEBP')
@@ -65,92 +57,81 @@ const formSchema = z.object({
         }, `File size must be less than ${MAX_MB}MB`),
 });
 
-export function ImageUploadForm({
-    setOpen,
-    setKey,
-    setIv,
-    setBlobId,
-}: {
-    setOpen: (open: boolean) => void;
-    setKey: (key: string) => void;
-    setIv: (iv: string) => void;
-    setBlobId: (blobId: string) => void;
-}) {
-    const { uploadFileAsync, encryptionIv, encryptionKey } = useUploadFile();
-    const [preview, setPreview] = useState('');
-    console.log(encryptionIv, encryptionKey);
+function convertFileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (error) => reject(error);
+    });
+}
 
-    const disableSubmit = !encryptionIv || !encryptionKey;
+export function CreateProfileForm({ setOpen }: { setOpen: (open: boolean) => void }) {
+    const [preview, setPreview] = useState('');
 
     const form = useForm<z.infer>({
         resolver: zodResolver(formSchema),
-        defaultValues: {
-            file: new File([], ''),
-        },
+        defaultValues: {},
     });
 
     async function onSubmit(data: z.infer) {
         setOpen(false);
-        console.log(data);
-        setKey(encryptionKey);
-        setIv(encryptionIv);
-
-        const res = await uploadFileAsync(data.file);
-        if (res?.newlyCreated) {
-            setBlobId(res.newlyCreated.blobObject.blobId);
-            console.log('File uploaded successfully', res);
-        } else {
-            console.error('Failed to upload file');
-        }
+        console.log(await convertFileToBase64(data.avatar));
+        toast({
+            title: 'You submitted the following values:',
+            description: (
+                <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+                    <code className="text-white">{JSON.stringify(data, null, 2)}</code>
+                </pre>
+            ),
+        });
     }
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="flex items-center justify-between px-2">
-                    <FormField
-                        control={form.control}
-                        name="title"
-                        render={({ field }) => (
+                <FormField
+                    control={form.control}
+                    name="username"
+                    render={({ field }) => {
+                        return (
                             <FormItem>
-                                <FormLabel>Title</FormLabel>
+                                <FormLabel>Username</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Title..." {...field} />
+                                    <Input {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="subscription"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                                <FormLabel>Subscription</FormLabel>
-                                <SubscriptionDropdown
-                                    subscriptions={subscriptions}
-                                    field={field}
-                                    form={form}
-                                />
+                        );
+                    }}
+                />
+                <FormField
+                    control={form.control}
+                    name="bio"
+                    render={({ field }) => {
+                        return (
+                            <FormItem>
+                                <FormLabel>Bio</FormLabel>
+                                <FormControl>
+                                    <Input {...field} />
+                                </FormControl>
                                 <FormMessage />
                             </FormItem>
-                        )}
-                    />
-                </div>
-
+                        );
+                    }}
+                />
                 {preview && (
                     <div className="flex justify-center">
                         <img src={preview} alt="Preview" className="h-48 w-72 rounded-md" />
                     </div>
                 )}
-
                 <FormField
                     control={form.control}
-                    name="file"
+                    name="avatar"
                     render={({ field }) => {
                         return (
                             <FormItem>
-                                <FormLabel>File</FormLabel>
+                                <FormLabel>Avatar</FormLabel>
                                 <FormControl>
                                     <Input
                                         type="file"
@@ -168,12 +149,10 @@ export function ImageUploadForm({
                         );
                     }}
                 />
-                <Button disabled={disableSubmit} type="submit">
-                    Submit
-                </Button>
+                <Button type="submit">Submit</Button>
             </form>
         </Form>
     );
 }
 
-export default ImageUploadForm;
+export default CreateProfileForm;

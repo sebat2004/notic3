@@ -3,12 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Edit } from 'lucide-react';
 import { useCurrentAccount } from '@mysten/dapp-kit';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ImagePost from '@/components/ImagePost';
 import BlogPost from '@/components/BlogPost';
+import { useGetCreator } from '@/hooks/use-get-creator';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type Params = {
     address: string;
@@ -17,7 +19,9 @@ type Params = {
 export default function CreatorProfile({ params }: { params: Params }) {
     const address = params!.address;
     const account = useCurrentAccount();
-    console.log(account?.address);
+    const { data, isLoading, isError } = useGetCreator(address);
+    const isOwner = account?.address === address;
+    const isEditing = console.log(isOwner);
 
     // Validate the address (this is a simple check, you might want to use a more robust validation)
     // const isValidAddress = address && /^0x[a-fA-F0-9]{40}$/.test(address);
@@ -47,41 +51,45 @@ export default function CreatorProfile({ params }: { params: Params }) {
                 <CardHeader className="bg-gradient-to-r from-black to-gray-500 text-white">
                     <div className="flex items-center space-x-4">
                         <Avatar className="h-20 w-20 border-4 border-white">
-                            <AvatarImage src="https://i.pravatar.cc/300" alt="Creator profile" />
+                            <AvatarImage src={data?.image} alt="Creator profile" />
                             <AvatarFallback>CP</AvatarFallback>
                         </Avatar>
                         <div>
-                            <CardTitle className="text-2xl font-bold">Creator Profile</CardTitle>
-                            <p className="text-sm opacity-75">Wallet Address:</p>
-                            <p className="break-all font-mono text-sm">{address}</p>
+                            <CardTitle className="text-2xl font-bold">{data?.name}</CardTitle>
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="mt-4">
-                    <div className="mb-6 flex items-center justify-between">
-                        <div>
-                            <h2 className="text-xl font-semibold">Creator Name</h2>
-                            <p className="text-sm text-gray-500">Joined: January 2023</p>
-                            <div className="mt-2 flex space-x-2">
-                                <Badge>Web3</Badge>
-                                <Badge>Content Creator</Badge>
-                                <Badge>Artist</Badge>
+                <CardContent className="mt-4 h-max py-0">
+                    <div className="flex flex-col justify-between gap-10">
+                        <div className="mt-1 flex justify-between gap-1">
+                            <div className="items-left flex flex-col justify-between">
+                                <h1 className="text-xl font-semibold">About</h1>
+                                {isLoading ? (
+                                    <div className="flex flex-col gap-3">
+                                        <Skeleton className="h-[16px] w-[100%] bg-gray-200" />
+                                        <Skeleton className="h-[16px] w-[70%] bg-gray-200" />
+                                    </div>
+                                ) : (
+                                    <div className="mt-2 flex flex-col justify-center gap-2">
+                                        <p className="text-gray-600">{data?.description}</p>
+                                        <p className="text-sm text-gray-500">
+                                            Joined: January 2023
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {!isOwner && <Button>Support Creator</Button>}
+                        </div>
+                        <div className="mb-6 flex items-center justify-between">
+                            <div>
+                                <div className="mt-2 flex space-x-2">
+                                    <Badge>Web3</Badge>
+                                    <Badge>Content Creator</Badge>
+                                    <Badge>Artist</Badge>
+                                </div>
                             </div>
                         </div>
-                        {account?.address === address ? (
-                            <Button>Edit Profile</Button>
-                        ) : (
-                            <Button>Support Creator</Button>
-                        )}
-                    </div>
-                    <div>
-                        <h3 className="mb-2 text-lg font-semibold">About</h3>
-                        <p className="text-gray-600">
-                            This is a placeholder description for the creator. You can replace this
-                            with actual data from your backend or smart contract. The creator might
-                            share their background, interests, and the type of content they produce
-                            here.
-                        </p>
                     </div>
                 </CardContent>
             </Card>
@@ -92,7 +100,7 @@ export default function CreatorProfile({ params }: { params: Params }) {
                         <CardTitle>Past Posts</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Tabs defaultValue="images">
+                        <Tabs defaultValue="all">
                             <TabsList>
                                 <TabsTrigger value="all">All Posts</TabsTrigger>
                                 <TabsTrigger value="images">Images</TabsTrigger>

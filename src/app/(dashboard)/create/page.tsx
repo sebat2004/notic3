@@ -15,7 +15,12 @@ import {
 import { Image, Video, Type, ChartNoAxesColumn } from 'lucide-react';
 import ContentOption from './components/ui/ContentOption';
 import { TextUploadForm } from './components/TextUploadForm';
-import { useUploadFile } from '@/hooks/queries';
+import { useGetCreator } from '@/hooks/use-get-creator';
+import { useCurrentAccount } from '@mysten/dapp-kit';
+import Link from 'next/link';
+import ImageUploadForm from './components/ImageUploadForm';
+import VideoUploadForm from './components/VideoUploadForm';
+import CreateProfileForm from './components/CreateProfileForm';
 
 const CreatePage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -23,78 +28,38 @@ const CreatePage = () => {
     const [encryptedBlob, setEncryptedBlob] = useState<Blob | null>(null);
     const [key, setKey] = useState<CryptoKey | null>(null);
     const [iv, setIv] = useState<Uint8Array>(new Uint8Array(12));
-    const [regularKey, setRegularKey] = useState<string | null>(null);
     const [blobId, setBlobId] = useState<string | null>(null);
+    console.log('PAGE BLOB ID', blobId);
+    console.log('PAGE IV', iv);
+    console.log('PAGE KEY', key);
+
     const [isClient, setIsClient] = useState(false);
 
-    const uploadFileMutation = useUploadFile();
+    const account = useCurrentAccount();
+    console.log(account?.address);
+    const { data, isError } = useGetCreator(account?.address);
 
     useEffect(() => {
         setIsClient(true);
-        const newKey = crypto.getRandomValues(new Uint8Array(32));
-        const keyString = Array.from(newKey)
-            .map((b) => b.toString(16).padStart(2, '0'))
-            .join('');
-        setRegularKey(keyString);
-
-        crypto.subtle
-            .importKey('raw', newKey, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt'])
-            .then((importedKey) => {
-                setKey(importedKey);
-            });
-
-        const newIv = crypto.getRandomValues(new Uint8Array(12));
-        setIv(newIv);
-        console.log('Generated IV:', newIv);
-
-        return () => {
-            if (previewUrl) URL.revokeObjectURL(previewUrl);
-        };
     }, []);
 
-    const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files ? event.target.files[0] : null;
-
-        if (!file || !key) {
-            return;
-        }
-
-        setPreviewUrl(URL.createObjectURL(file));
-
-        const fileData = await file.arrayBuffer();
-        const encryptedFile = await crypto.subtle.encrypt(
-            {
-                name: 'AES-GCM',
-                iv: iv,
-            },
-            key,
-            fileData
-        );
-
-        setEncryptedBlob(new Blob([encryptedFile]));
-
-        console.log('Encrypted Blob:', new Blob([encryptedFile]));
-
-        uploadFileMutation
-            .mutateAsync(encryptedFile)
-            .then((response) => {
-                console.log('Upload successful:', response);
-                console.log('Blob ID:', response.newlyCreated.blobObject.blobId);
-                setBlobId(response.newlyCreated.blobObject.blobId);
-            })
-            .catch((error) => {
-                console.error('Upload failed:', error);
-            });
-    };
-
-    const handleButtonClick = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.click();
-        }
-    };
+    if (isError) {
+        return <div>Error</div>;
+    }
 
     if (!isClient) {
-        return;
+        return <div className="text-4xl">Please connect your wallet</div>;
+    }
+
+    const registered = false;
+
+    if (!registered) {
+        return (
+            <div className="mx-auto my-10 w-full max-w-lg">
+                <p className="text-center text-4xl font-bold">Create Profile</p>
+                <CreateProfileForm setOpen={() => {}} />
+            </div>
+        );
     }
 
     return (
@@ -113,13 +78,15 @@ const CreatePage = () => {
                                 alt="Profile Picture"
                                 className="h-24 w-24 rounded-full"
                             />
-                            <h1 className="mt-2 text-2xl font-semibold">John Doe</h1>
+                            <h1 className="mt-2 text-2xl font-semibold">{data?.name}</h1>
                             <p className="text-sm text-muted-foreground">Software Developer</p>
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button className="w-full" variant="outline" size="lg">
-                            Edit Profile
+                        <Button asChild>
+                            <Link className="w-full" href={`creator/${data?.address}`} size="lg">
+                                Edit Profile
+                            </Link>
                         </Button>
                     </CardFooter>
                 </Card>
@@ -133,28 +100,40 @@ const CreatePage = () => {
                     <CardContent>
                         <div className="grid grid-cols-2 gap-2">
                             <ContentOption
-                                Form={TextUploadForm}
+                                Form={ImageUploadForm}
                                 Icon={Image}
                                 tooltipText="Upload Image"
                                 formTitle="Image"
+                                setIv={setIv}
+                                setKey={setKey}
+                                setBlobId={setBlobId}
                             />
                             <ContentOption
-                                Form={TextUploadForm}
+                                Form={VideoUploadForm}
                                 Icon={Video}
                                 tooltipText="Upload Video"
                                 formTitle="Video"
+                                setIv={setIv}
+                                setKey={setKey}
+                                setBlobId={setBlobId}
                             />
                             <ContentOption
                                 Form={TextUploadForm}
                                 Icon={Type}
-                                tooltipText="Create Text Post"
+                                tooltipText="Create Blog Post"
                                 formTitle="Text"
+                                setIv={setIv}
+                                setKey={setKey}
+                                setBlobId={setBlobId}
                             />
                             <ContentOption
                                 Form={TextUploadForm}
                                 Icon={ChartNoAxesColumn}
                                 tooltipText="Create Poll"
                                 formTitle="Poll"
+                                setIv={setIv}
+                                setKey={setKey}
+                                setBlobId={setBlobId}
                             />
                         </div>
                     </CardContent>
@@ -167,7 +146,7 @@ const CreatePage = () => {
             </div>
 
             {/* File Upload Section */}
-            <Card className="mt-4 w-full p-3">
+            {/* <Card className="mt-4 w-full p-3">
                 <CardHeader>
                     <CardTitle>File Upload</CardTitle>
                     <CardDescription>Upload and encrypt a file</CardDescription>
@@ -202,10 +181,10 @@ const CreatePage = () => {
                         </Button>
                     </div>
                 </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Encryption Details */}
-            {regularKey && (
+            {key && (
                 <Card className="mt-4 w-full">
                     <CardHeader>
                         <CardTitle>Encryption Details</CardTitle>
@@ -216,7 +195,7 @@ const CreatePage = () => {
                     <CardContent>
                         <div>
                             <h3 className="text-lg font-semibold">Key:</h3>
-                            <p className="break-all">{regularKey}</p>
+                            <p className="break-all">{key}</p>
                         </div>
                         <div className="mt-2">
                             <h3 className="text-lg font-semibold">IV:</h3>
