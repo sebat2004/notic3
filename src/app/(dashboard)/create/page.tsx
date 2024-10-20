@@ -16,6 +16,7 @@ import { Image, Video, Type, ChartNoAxesColumn } from 'lucide-react';
 import ContentOption from './components/ui/ContentOption';
 import { TextUploadForm } from './components/TextUploadForm';
 import { useUploadFile } from '@/hooks/queries';
+import CreateProfileForm from './components/CreateProfileForm';
 
 const CreatePage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -94,7 +95,18 @@ const CreatePage = () => {
     };
 
     if (!isClient) {
-        return;
+        return <div className="text-4xl">Please connect your wallet</div>;
+    }
+
+    const registered = false;
+
+    if (!registered) {
+        return (
+            <div className="mx-auto my-10 w-full max-w-lg">
+                <p className="text-center text-4xl font-bold">Create Profile</p>
+                <CreateProfileForm setOpen={() => {}} />
+            </div>
+        );
     }
 
     return (

@@ -10,7 +10,7 @@ interface CreatorCardProps {
 
 export const CreatorCard = ({ creator }: CreatorCardProps) => {
     return (
-        <Card className="mx-auto h-full w-full max-w-sm transform overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <Card className="mx-auto h-full w-full transform overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
             <CardHeader className="p-4">
                 <div className="flex items-center space-x-4">
                     <Avatar className="h-16 w-16">
