@@ -23,17 +23,16 @@ interface Subscription {
 type SubscriptionArray = Subscription[];
 
 function Subscriptions() {
-
     const account = useCurrentAccount();
     const suiClient = useSuiClient();
     const [registry, setRegistry] = useState<SuiObjectResponse>();
     const [creatorSubscriptions, setCreatorSubscriptions] = useState<SuiObjectResponse[]>([]);
     const [userSubscriptions, setUserSubscriptions] = useState<SubscriptionArray>([]);
-    const [timeleft, setTimeleft] = useState('')
-    const [expiry, setExpiry] = useState('')
-    const [cost, setCost] = useState(0)
-    const [creator, setCreator] = useState()
-    
+    const [timeleft, setTimeleft] = useState('');
+    const [expiry, setExpiry] = useState('');
+    const [cost, setCost] = useState(0);
+    const [creator, setCreator] = useState();
+
     const { data, isPending, isFetching } = useKeyPair();
 
     useEffect(() => {
@@ -58,42 +57,49 @@ function Subscriptions() {
                 console.log(subscriptionResp);
                 subscriptionResp.forEach((creatorSubscription) => {
                     creatorSubscription.data?.content?.fields.subscriptions.fields.contents.forEach(
-                        async subscription => {
+                        async (subscription) => {
                             if (subscription.fields.key == account.address) {
                                 const creatorSubscriptionResp = await suiClient.getObject({
                                     id: subscription.fields.value.fields.creator_subscription_id,
                                     options: {
                                         showContent: true,
                                     },
-                                })
-                                console.log(creatorSubscriptionResp.data)
-                                setCost(creatorSubscriptionResp.data?.content?.fields.subscription_price)
-                                
-                                //const creatorResp = await 
+                                });
+                                console.log(creatorSubscriptionResp.data);
+                                setCost(
+                                    creatorSubscriptionResp.data?.content?.fields.subscription_price
+                                );
 
-                                const timestamp = parseInt(subscription.fields.value.fields.end_time, 10);
+                                //const creatorResp = await
+
+                                const timestamp = parseInt(
+                                    subscription.fields.value.fields.end_time,
+                                    10
+                                );
                                 const difference = timestamp - Date.now();
-                                
+
                                 const seconds = Math.floor(Math.abs(difference) / 1000);
                                 const minutes = Math.floor(seconds / 60);
                                 const hours = Math.floor(minutes / 60);
                                 const days = Math.floor(hours / 24);
 
                                 if (days > 0) {
-                                    setTimeleft(`${days} day${days > 1 ? 's' : ''}`)
+                                    setTimeleft(`${days} day${days > 1 ? 's' : ''}`);
                                 } else if (hours > 0) {
-                                    setTimeleft(`${hours} hour${hours > 1 ? 's' : ''}`)
+                                    setTimeleft(`${hours} hour${hours > 1 ? 's' : ''}`);
                                 } else if (minutes > 0) {
-                                    setTimeleft(`${minutes} minute${minutes > 1 ? 's' : ''}`)
+                                    setTimeleft(`${minutes} minute${minutes > 1 ? 's' : ''}`);
                                 } else {
-                                    setTimeleft(`${seconds} second${seconds !== 1 ? 's' : ''}`)
+                                    setTimeleft(`${seconds} second${seconds !== 1 ? 's' : ''}`);
                                 }
 
-                                setExpiry(new Date(timestamp).toLocaleString())
+                                setExpiry(new Date(timestamp).toLocaleString());
 
                                 setUserSubscriptions((prevSubscriptions) => {
                                     const newSubscription: Subscription = {
-                                        creator_subscription_id: subscription.fields.value.fields.creator_subscription_id,
+                                        creator_subscription_id:
+                                            subscription.fields.value.fields
+                                                .creator_subscription_id,
                                         end_time: subscription.fields.value.fields.end_time,
                                         start_time: subscription.fields.value.fields.start_time,
                                     };
@@ -120,7 +126,12 @@ function Subscriptions() {
                         </CardHeader>
                         <CardContent>
                             <div className="flex flex-col">
-                                <a href={`https://suiscan.xyz/testnet/object/${subscription}`}target="_blank">link</a>
+                                <a
+                                    href={`https://suiscan.xyz/testnet/object/${subscription}`}
+                                    target="_blank"
+                                >
+                                    link
+                                </a>
                                 <span>cost: {cost} $SUI</span>
                             </div>
                         </CardContent>

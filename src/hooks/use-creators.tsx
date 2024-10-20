@@ -79,15 +79,15 @@ export const fetchCreators = async (subscribedOnly: true) => {
             showContent: true,
         },
     });
-    return res?.data?.content?.fields.creators
+    return res?.data?.content?.fields.creators;
 };
 
 export const useCreators = (subscribedOnly: boolean = false) => {
     const { data, isPending, isError, error, refetch } = useSuiClientQuery(
         'getObject',
-        { id: process.env.NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID, },
+        { id: process.env.NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID },
         { showContent: true }
-    )
+    );
 
-    console.log(data)
+    console.log(data);
 };
