@@ -31,18 +31,22 @@ import {
 import { KeyRound } from 'lucide-react';
 import { SidebarMenuButton } from '@/components/ui/sidebar';
 import { useKeyPair } from '@/hooks/use-key-pair';
+import { useDownloadUnencryptedFile } from '@/hooks/getdata';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const CreatePage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [encryptedBlob, setEncryptedBlob] = useState<Blob | null>(null);
     const [key, setKey] = useState<CryptoKey | null>(null);
-    const [iv, setIv] = useState<Uint8Array>(new Uint8Array(12));
+    const [iv, setIv] = useState<Uint8Array | null>(null);
     const [blobId, setBlobId] = useState<string | null>(null);
     const [registered, setRegistered] = useState(false);
+    const [creator, setCreator] = useState(null);
 
     const suiClient = useSuiClient();
     const account = useCurrentAccount();
+    const { data } = useDownloadUnencryptedFile(creator?.picture);
 
     const query = useKeyPair();
     const { publicKey, privateKey } = query.data || {};
@@ -57,7 +61,10 @@ const CreatePage = () => {
                 },
             });
             res.data?.content?.fields.creators.fields.contents.forEach((creator) => {
-                if (creator.fields.key == account.address) setRegistered(true);
+                if (creator.fields.key == account.address) {
+                    setRegistered(true);
+                    setCreator(creator.fields.value.fields);
+                }
             });
         })();
     }, [account]);
@@ -111,12 +118,15 @@ const CreatePage = () => {
                     <CardContent>
                         <div className="flex flex-col items-center">
                             <img
-                                src="https://i.pravatar.cc/300"
+                                src={data}
                                 alt="Profile Picture"
                                 className="h-24 w-24 rounded-full"
                             />
-                            <h1 className="mt-2 text-2xl font-semibold">{}</h1>
-                            <p className="text-sm text-muted-foreground">Software Developer</p>
+                            {creator ? (
+                                <h1 className="mt-2 text-2xl font-semibold">{creator?.name}</h1>
+                            ) : (
+                                <Skeleton className="h-[16px] w-[100%] bg-gray-200" />
+                            )}
                         </div>
                     </CardContent>
                     <CardFooter>
@@ -181,39 +191,41 @@ const CreatePage = () => {
                     </CardFooter>
                 </Card>
             </div>
-
-            {key && (
-                <Card className="mt-4 w-full">
-                    <CardHeader>
-                        <CardTitle>Encryption Details</CardTitle>
-                        <CardDescription>
-                            Key and IV used for encryption (for demonstration only)
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
+            <Card className="mt-4 min-h-72 w-full">
+                <CardHeader>
+                    <CardTitle>Encryption Details</CardTitle>
+                    <CardDescription>
+                        Key and IV used for encryption (for demonstration only)
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {key && (
                         <div>
                             <h3 className="text-lg font-semibold">Key:</h3>
                             <p className="break-all">{key}</p>
                         </div>
+                    )}
+                    {iv && (
                         <div className="mt-2">
                             <h3 className="text-lg font-semibold">IV:</h3>
                             <p className="break-all">{iv}</p>
                         </div>
-                        {blobId && (
-                            <div className="mt-2">
-                                <h3 className="text-lg font-semibold">Blob ID:</h3>
-                                <p className="break-all">{blobId}</p>
-                            </div>
-                        )}
-                    </CardContent>
-                    <CardFooter>
-                        <p className="text-sm text-red-500">
-                            Warning: Exposing encryption keys is not secure. This is for
-                            demonstration purposes only.
-                        </p>
-                    </CardFooter>
-                </Card>
-            )}
+                    )}
+                    {blobId && (
+                        <div className="mt-2">
+                            <h3 className="text-lg font-semibold">Blob ID:</h3>
+                            <p className="break-all">{blobId}</p>
+                        </div>
+                    )}
+                </CardContent>
+                <CardFooter>
+                    <p className="mt-32 text-sm text-red-500">
+                        Warning: Exposing encryption keys is not secure. This is for demonstration
+                        purposes only.
+                    </p>
+                </CardFooter>
+            </Card>
+
             <Dialog>
                 <DialogTrigger asChild>
                     <SidebarMenuButton className="py-4">
