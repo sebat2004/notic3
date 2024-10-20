@@ -140,11 +140,11 @@ export default function CreatorProfile({ params }: { params: Params }) {
                 </CardHeader>
                 <CardContent className="mt-4 h-max py-0">
                     <div className="flex flex-col justify-between gap-10">
-                        <div className="mt-1 flex justify-between gap-1">
-                            <div className="items-left flex flex-col justify-between">
+                        <div className="mt-1 flex justify-between gap-10">
+                            <div className="items-left flex w-full flex-col justify-between">
                                 <h1 className="text-xl font-semibold">About</h1>
                                 {!creator ? (
-                                    <div className="flex flex-col gap-3">
+                                    <div className="flex w-full flex-col gap-3">
                                         <Skeleton className="h-[16px] w-[100%] bg-gray-200" />
                                         <Skeleton className="h-[16px] w-[70%] bg-gray-200" />
                                     </div>
@@ -284,44 +284,52 @@ export default function CreatorProfile({ params }: { params: Params }) {
                         </Tabs>
                     </CardContent>
                 </Card>
-                <Card className="mt-4" id="support">
-                    <CardHeader>
-                        <CardTitle>Support {creator?.name}!</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center justify-evenly">
-                            {tiers.map((tier) => (
-                                <Card
-                                    key={tier.title}
-                                    className="mb-4 flex h-96 w-[25%] flex-col justify-between p-4"
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <h4 className="mb-2 text-2xl font-semibold">
-                                                {tier.title}
-                                            </h4>
-                                            <p className="text-gray-600">{tier.description}</p>
-
-                                            <ul className="mt-5 flex flex-col gap-2">
-                                                <h4 className="text-md font-semibold">
-                                                    Access to:
+                {!creator ? (
+                    <Skeleton className="mt-4 flex h-96 items-center justify-evenly">
+                        <Skeleton className="h-[90%] w-[25%] bg-gray-300" />
+                        <Skeleton className="h-[90%] w-[25%] bg-gray-300" />
+                        <Skeleton className="h-[90%] w-[25%] bg-gray-300" />
+                    </Skeleton>
+                ) : (
+                    <Card className="mt-4" id="support">
+                        <CardHeader>
+                            <CardTitle>Support {creator?.name}!</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-center justify-evenly">
+                                {tiers.map((tier) => (
+                                    <Card
+                                        key={tier.title}
+                                        className="mb-4 flex h-96 w-[25%] flex-col justify-between p-4"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <h4 className="mb-2 text-2xl font-semibold">
+                                                    {tier.title}
                                                 </h4>
-                                                {tier.postAccess.map((post) => (
-                                                    <dd key={post}>{post}</dd>
-                                                ))}
-                                            </ul>
+                                                <p className="text-gray-600">{tier.description}</p>
+
+                                                <ul className="mt-5 flex flex-col gap-2">
+                                                    <h4 className="text-md font-semibold">
+                                                        Access to:
+                                                    </h4>
+                                                    {tier.postAccess.map((post) => (
+                                                        <dd key={post}>{post}</dd>
+                                                    ))}
+                                                </ul>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <Button variant="outline">
-                                        <h4 className="text-md font-semibold">
-                                            Access for ${tier.price}
-                                        </h4>
-                                    </Button>
-                                </Card>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                                        <Button variant="outline">
+                                            <h4 className="text-md font-semibold">
+                                                Access for ${tier.price}
+                                            </h4>
+                                        </Button>
+                                    </Card>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
         </div>
     );
