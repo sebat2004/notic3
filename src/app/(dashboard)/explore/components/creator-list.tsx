@@ -12,23 +12,6 @@ export const CreatorList = () => {
         options: { showContent: true },
     });
 
-    useEffect(() => {
-        if (!data) return;
-        data?.data?.content?.fields.creators.fields.contents.forEach(async (creator) => {
-            console.log(creator.fields.value.fields.picture);
-            const response = await fetch(
-                `https://aggregator.walrus-testnet.walrus.space/v1/${creator.fields.value.fields.picture}`,
-                {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'text/plain',
-                    },
-                }
-            );
-            console.log(response);
-        });
-    }, [data]);
-
     if (isPending) return <div>Loading...</div>;
 
     return (
