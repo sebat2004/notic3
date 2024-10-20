@@ -42,3 +42,5 @@ jspm_packages
 
 build/
 Move.lock
+
+DS_Store
