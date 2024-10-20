@@ -34,8 +34,6 @@ import { saveAs } from 'file-saver';
 import { Creator, useCreators } from '@/hooks/use-creators';
 
 const CreatePage = () => {
-    const [registered, setRegistered] = useState(false);
-    const [creator, setCreator] = useState(null);
     const [key, setKey] = useState<CryptoKey | null>(null);
     const [iv, setIv] = useState<Uint8Array | null>(null);
     const [blobId, setBlobId] = useState<string | null>(null);
