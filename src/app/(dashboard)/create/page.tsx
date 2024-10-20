@@ -14,8 +14,9 @@ import {
 import { useGetCreator } from '@/hooks/use-get-creator';
 import { Image, Video, Type, ChartNoAxesColumn } from 'lucide-react';
 import ContentOption from './components/ui/ContentOption';
-import { TextUploadForm } from './components/TextUploadForm';
 import Link from 'next/link';
+import { TextUploadForm } from './components/TextUploadForm';
+import { SubscriptionUploadForm } from './components/SubscriptionUploadForm';
 import ImageUploadForm from './components/ImageUploadForm';
 import VideoUploadForm from './components/VideoUploadForm';
 import CreateProfileForm from './components/CreateProfileForm';
@@ -107,39 +108,48 @@ const CreatePage = () => {
         : 'Not found';
 
     return (
-        <div className="flex w-full flex-col items-center justify-between p-10">
-            <div className="flex w-full flex-col items-center justify-center gap-4 lg:flex-row lg:items-start">
+        <div className="flex w-full flex-col items-center justify-between gap-4 p-10">
+            <Card className="h-full w-full p-2">
+                <CardHeader>
+                    <CardTitle>Profile Preview</CardTitle>
+                    <CardDescription>Your public profile</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-col items-center">
+                        <img
+                            src="https://i.pravatar.cc/300"
+                            alt="Profile Picture"
+                            className="h-24 w-24 rounded-full"
+                        />
+                        <h1 className="mt-2 text-2xl font-semibold">{}</h1>
+                        <p className="text-sm text-muted-foreground">Software Developer</p>
+                    </div>
+                </CardContent>
+                <CardFooter>
+                    <Button asChild>
+                        <Link className="w-full" href="" size="lg">
+                            Edit Profile
+                        </Link>
+                    </Button>
+                </CardFooter>
+            </Card>
+            <div className="flex w-full items-center justify-between gap-4 lg:flex-row lg:items-start">
                 {/* Profile Preview Card */}
-                <Card className="h-full w-full p-2 lg:w-[60%]">
+                <Card className="h-full w-full p-3 lg:w-[50%]">
                     <CardHeader>
-                        <CardTitle>Profile Preview</CardTitle>
-                        <CardDescription>Your public profile</CardDescription>
+                        <CardTitle>Create Subscription</CardTitle>
+                        <CardDescription>Create subscription tiers for specific content</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex flex-col items-center">
-                            <img
-                                src={data}
-                                alt="Profile Picture"
-                                className="h-24 w-24 rounded-full"
-                            />
-                            {creator ? (
-                                <h1 className="mt-2 text-2xl font-semibold">{creator?.name}</h1>
-                            ) : (
-                                <Skeleton className="h-[16px] w-[100%] bg-gray-200" />
-                            )}
-                        </div>
+                        <SubscriptionUploadForm />
                     </CardContent>
                     <CardFooter>
-                        <Button asChild>
-                            <Link className="w-full" href={`creator/${account?.address}`} size="lg">
-                                Edit Profile
-                            </Link>
-                        </Button>
+                        <p className="text-center text-sm text-muted-foreground">
+                            Note: Subscriptions are immutable
+                        </p>
                     </CardFooter>
                 </Card>
-
-                {/* Upload Content Card */}
-                <Card className="h-full w-full p-3 lg:w-[40%]">
+                <Card className="h-full w-full p-3 lg:w-[50%]">
                     <CardHeader>
                         <CardTitle>Create Content</CardTitle>
                         <CardDescription>Upload any content of your choosing</CardDescription>

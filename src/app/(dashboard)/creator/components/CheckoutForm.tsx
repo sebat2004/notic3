@@ -41,7 +41,7 @@ const formSchema = z.object({
         }),
 });
 
-export function TextUploadForm({ setOpen }: { setOpen: (open: boolean) => void }) {
+export function CheckoutForm({ setOpen }: { setOpen: (open: boolean) => void }) {
     // 1. Define your form.
     const form = useForm<z.infer>({
         resolver: zodResolver(formSchema),
@@ -58,6 +58,7 @@ export function TextUploadForm({ setOpen }: { setOpen: (open: boolean) => void }
         // ✅ This will be type-safe and validated.
         setOpen(false);
         console.log(values);
+        console.log('hi');
     }
 
     return (

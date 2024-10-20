@@ -3,10 +3,12 @@ module notic3::subscription {
     use sui::clock::{Self, Clock};
     use std::string::{String};
     use sui::vec_map::{Self, VecMap};
+    use sui::coin::{Self, Coin};
+    use sui::sui::SUI;
 
     public struct CreatorRegistry has key {
         id: UID,
-        creators: VecMap<address, Creator>
+        creators: VecMap<address, ID>
     }
 
     public struct Creator has key, store {
@@ -15,7 +17,6 @@ module notic3::subscription {
         name: String,
         picture: String,
         bio: String,
-        subscriptions: vector<CreatorSubscription>
     }
 
     public entry fun register_creator(
@@ -33,9 +34,9 @@ module notic3::subscription {
                 name,
                 picture,
                 bio,
-                subscriptions: vector::empty()
             };
-            vec_map::insert(&mut registry.creators, creator.creator_address, creator);
+            vec_map::insert(&mut registry.creators, creator.creator_address, object::id(&creator));
+            transfer::share_object(creator);
         }
     }
 
@@ -47,7 +48,8 @@ module notic3::subscription {
     public struct CreatorSubscription has key, store {
         id: UID,
         creator: address,
-        content: vector<Content>,
+        title: String,
+        content: vector<ID>,
         subscriptions: VecMap<address, Subscription>,
         subscription_price: u64,
         subscription_duration: u64
@@ -89,23 +91,24 @@ module notic3::subscription {
     }
 
     public entry fun initialize(
-        self: &mut CreatorSubscriptionRegistry,
+        creatorSubscriptionRegistry: &mut CreatorSubscriptionRegistry,
+        title: String,
         subscription_price: u64,
         subscription_duration: u64,
         ctx: &mut TxContext
     ) {
+        let creator = tx_context::sender(ctx);
         let subscription = CreatorSubscription {
             id: object::new(ctx),
-            creator: tx_context::sender(ctx),
+            creator,
+            title,
             subscriptions: vec_map::empty(),
             content: vector::empty(),
             subscription_price,
             subscription_duration
         };
-        let subscription_id = object::id(&subscription);
+        vector::push_back(&mut creatorSubscriptionRegistry.subscriptions, object::id(&subscription));
         transfer::share_object(subscription);
-
-        vector::push_back(&mut self.subscriptions, subscription_id);
     }
 
     public entry fun content(
@@ -137,11 +140,13 @@ module notic3::subscription {
             table::add(&mut new_content.encrypted_blob_data, user_address, d);
             i = i + 1;
         };
-        vector::push_back(&mut self.content, new_content);
+        vector::push_back(&mut self.content, object::id(&new_content));
+        transfer::share_object(new_content);
     }
 
     public entry fun subscribe(
-        self: &mut CreatorSubscription,
+        creator_subscription: &mut CreatorSubscription,
+        payment: &mut Coin<SUI>,
         user_public_key: vector<u8>,
         clock: &Clock,
         ctx: &mut TxContext
@@ -152,10 +157,15 @@ module notic3::subscription {
         let subscription = Subscription {
             id: object::new(ctx),
             user_public_key,
-            creator_subscription_id: object::uid_to_inner(&self.id),
+            creator_subscription_id: object::uid_to_inner(&creator_subscription.id),
             start_time: now,
-            end_time: now + self.subscription_duration
+            end_time: now + creator_subscription.subscription_duration
         };
-        vec_map::insert(&mut self.subscriptions, subscriber, subscription);
+
+        // payment logic
+        let coin_to_send = coin::split(payment, creator_subscription.subscription_price, ctx);
+        transfer::public_transfer(coin_to_send, creator_subscription.creator);
+
+        vec_map::insert(&mut creator_subscription.subscriptions, subscriber, subscription);
     }
 }

@@ -1,9 +1,10 @@
 'use client';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, Edit } from 'lucide-react';
+import { AlertCircle, ShoppingBag } from 'lucide-react';
 import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,31 +16,13 @@ import VideoPost from '@/components/VideoPost';
 import { useEffect, useState } from 'react';
 import { useDownloadUnencryptedFile } from '@/hooks/getdata';
 import Link from 'next/link';
+import { useSignTransaction } from '@mysten/dapp-kit';
+import { Transaction } from '@mysten/sui/transactions';
+import { useKeyPair } from '@/hooks/use-key-pair';
 
 type Params = {
     address: string;
 };
-
-const tiers = [
-    {
-        title: 'Tier 1',
-        price: 5,
-        description: 'Get access to exclusive blog posts!',
-        postAccess: ['Blogs'],
-    },
-    {
-        title: 'Tier 2',
-        price: 10,
-        description: 'Expand your access to images!',
-        postAccess: ['Blogs', 'Images'],
-    },
-    {
-        title: 'Tier 3',
-        price: 20,
-        description: 'Unlock all content! Blogs, images, and videos are all yours!',
-        postAccess: ['Blogs', 'Images', 'Videos'],
-    },
-];
 
 const posts = [
     {
@@ -74,10 +57,13 @@ export default function CreatorProfile({ params }: { params: Params }) {
     const account = useCurrentAccount();
     const [creator, setCreator] = useState<any>();
     const suiClient = useSuiClient();
+    const [exportedKey, setExportKey] = useState<ArrayBuffer>()
     const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
     const [registered, setRegistered] = useState(false);
     const [userAvatarBlob, setUserAvatarBlob] = useState<string | null>(null);
+    const [creatorSubscriptions, setCreatorSubscriptions] = useState([]);
     const { data, isLoading } = useDownloadUnencryptedFile(userAvatarBlob);
+    const { mutateAsync: signTransaction } = useSignTransaction();
 
     useEffect(() => {
         if (!account) return;
@@ -88,6 +74,7 @@ export default function CreatorProfile({ params }: { params: Params }) {
                     showContent: true,
                 },
             });
+            console.log(res)
             res.data?.content?.fields.creators.fields.contents.forEach(async (creator) => {
                 if (creator.fields.key === address) {
                     setCreator(creator.fields.value.fields);
@@ -98,12 +85,55 @@ export default function CreatorProfile({ params }: { params: Params }) {
                     }
                 }
             });
+            const registryResp = await suiClient.getObject({
+                id: process.env.NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID,
+                options: {
+                    showContent: true,
+                },
+            });
+            const subscriptions = registryResp.data?.content?.fields.subscriptions.fields.contents.filter(subscription => subscription.fields.value.fields.creator == account?.address)
+            console.log(subscriptions)
+            setCreatorSubscriptions(subscriptions)
         })();
     }, [account]);
 
     console.log('CREATOR', creator);
     // Validate the address (this is a simple check, you might want to use a more robust validation)
     // const isValidAddress = address && /^0x[a-fA-F0-9]{40}$/.test(address);
+
+    const handleSubmit = async subscription => {
+        console.log(subscription)
+        
+        const tx = new Transaction();
+
+        tx.moveCall({
+            target: `${process.env.NEXT_PUBLIC_PACKAGE_ID}::subscription::subscribe`,
+            arguments: [
+                tx.object(subscription.fields.key), 
+                tx.object('0x193ada1713774928f1800945532dadf102fd269af83ded780ff537febb838ddf'),
+                tx.pure(new Uint8Array()),
+                tx.object('0x6')
+            ],
+        });
+        const { bytes, signature, reportTransactionEffects } =
+            await signTransaction({
+                transaction: tx,
+                chain: 'sui:testnet',
+            });
+
+        const executeResult = await suiClient.executeTransactionBlock({
+            transactionBlock: bytes,
+            signature,
+            options: {
+                showRawEffects: true,
+            },
+        });
+
+        // Always report transaction effects to the wallet after execution
+        reportTransactionEffects(executeResult.rawEffects!);
+
+        console.log(executeResult);
+    }
 
     const isValidAddress = true;
 
@@ -330,6 +360,33 @@ export default function CreatorProfile({ params }: { params: Params }) {
                         </CardContent>
                     </Card>
                 )}
+                <Card className="mt-4" id="support">
+                    <CardHeader>
+                        <CardTitle>Support {creator?.name}!</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center justify-evenly">
+                            {creatorSubscriptions.map(subscription => (
+                                <Card
+                                    key={subscription.fields.key}
+                                    className="mb-4 flex h-96 w-[25%] flex-col justify-between p-4"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h4 className="mb-2 text-2xl font-semibold">
+                                                {subscription.fields.value.fields.title}
+                                            </h4>
+                                            <p className="text-gray-600">{null}</p>
+                                        </div>
+                                    </div>
+                                    <Button onClick={() => handleSubmit(subscription)} variant="outline">
+                                        <ShoppingBag /> Checkout
+                                    </Button>
+                                </Card>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );

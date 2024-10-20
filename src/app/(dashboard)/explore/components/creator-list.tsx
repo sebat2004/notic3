@@ -4,9 +4,12 @@ import { CreatorCard } from './creator-card';
 import { useSuiClientQuery } from '@mysten/dapp-kit';
 import { useState, useEffect } from 'react';
 import { Creator, useCreators } from '@/hooks/use-creators';
+import { useSuiClient } from '@mysten/dapp-kit';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export const CreatorList = () => {
+
+    //if (isPending) return <div>Loading...</div>;
     const { creators, isPending, isError, error, refetch } = useCreators();
 
     if (isPending)
