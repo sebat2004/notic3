@@ -132,12 +132,16 @@ const CreatePage = () => {
                 <CardContent>
                     <div className="flex flex-col items-center">
                         <img
-                            src={data || "https://i.pravatar.cc/300"}
+                            src={data || 'https://i.pravatar.cc/300'}
                             alt="Profile Picture"
                             className="h-24 w-24 rounded-full"
                         />
-                        <h1 className="mt-2 text-2xl font-semibold">{creator?.name || "Your Name"}</h1>
-                        <p className="text-sm text-muted-foreground">{creator?.bio || "Your Bio"}</p>
+                        <h1 className="mt-2 text-2xl font-semibold">
+                            {creator?.name || 'Your Name'}
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            {creator?.bio || 'Your Bio'}
+                        </p>
                     </div>
                 </CardContent>
                 <CardFooter>

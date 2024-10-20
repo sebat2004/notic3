@@ -37,7 +37,7 @@ function Subscriptions() {
         }
     }, [account]);
 
-    const fetchSubscriptionData = async () => { 
+    const fetchSubscriptionData = async () => {
         try {
             const registryResp = await suiClient.getObject({
                 id: process.env.NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID,
@@ -53,7 +53,8 @@ function Subscriptions() {
 
             const userSubs = [];
             for (const creatorSubscription of subscriptionResp) {
-                const contents = creatorSubscription.data?.content?.fields.subscriptions.fields.contents;
+                const contents =
+                    creatorSubscription.data?.content?.fields.subscriptions.fields.contents;
                 for (const subscription of contents) {
                     if (subscription.fields.key === account.address) {
                         const creatorSubResp = await suiClient.getObject({
@@ -63,7 +64,8 @@ function Subscriptions() {
                         setCost(creatorSubResp.data?.content?.fields.subscription_price);
 
                         userSubs.push({
-                            creator_subscription_id: subscription.fields.value.fields.creator_subscription_id,
+                            creator_subscription_id:
+                                subscription.fields.value.fields.creator_subscription_id,
                             end_time: subscription.fields.value.fields.end_time,
                             start_time: subscription.fields.value.fields.start_time,
                         });
@@ -72,7 +74,7 @@ function Subscriptions() {
             }
             setUserSubscriptions(userSubs);
         } catch (error) {
-            console.error("Error fetching subscription data:", error);
+            console.error('Error fetching subscription data:', error);
         }
     };
 
@@ -108,7 +110,9 @@ function Subscriptions() {
                     <Card key={subscription.end_time}>
                         <CardHeader>
                             <CardTitle>{subscription.creator_subscription_id}</CardTitle>
-                            <CardDescription>Expiring in {calculateTimeLeft(subscription.end_time)}</CardDescription>
+                            <CardDescription>
+                                Expiring in {calculateTimeLeft(subscription.end_time)}
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="flex flex-col">

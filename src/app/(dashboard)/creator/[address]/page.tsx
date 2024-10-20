@@ -55,8 +55,6 @@ const posts = [
     // },
 ];
 
-
-
 export default function CreatorProfile({ params }: { params: Params }) {
     const address = params!.address;
     const account = useCurrentAccount();
@@ -258,7 +256,7 @@ export default function CreatorProfile({ params }: { params: Params }) {
                                 value="all"
                             >
                                 {posts.length === 0 && (
-                                    <div className=" text-gray-500">
+                                    <div className="text-gray-500">
                                         No posts found. Check back later!
                                     </div>
                                 )}
