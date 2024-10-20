@@ -16,15 +16,15 @@ import {
 } from '@/components/ui/form';
 import SubscriptionDropdown from './ui/SubscriptionDropdown';
 import { Input } from '@/components/ui/input';
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useState, useEffect } from 'react';
 import { useUploadFile } from '@/hooks/queries';
+import { useCurrentAccount, useSuiClient, useSignTransaction } from '@mysten/dapp-kit';
+import { Transaction } from '@mysten/sui/transactions';
 
-const subscriptions = [
-    { label: 'Free', value: 'free' },
-    { label: 'Basic', value: 'basic' },
-    { label: 'Premium', value: 'premium' },
-    { label: 'Pro', value: 'pro' },
-] as const;
+interface Subscription {
+    label: string;
+    value: string;
+}
 
 const MAX_UPLOAD_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_MB = MAX_UPLOAD_SIZE / 1024 / 1024;
@@ -78,7 +78,10 @@ export function ImageUploadForm({
 }) {
     const { uploadFileAsync, encryptionIv, encryptionKey } = useUploadFile();
     const [preview, setPreview] = useState('');
-    console.log(encryptionIv, encryptionKey);
+    const [creatorSubscriptions, setCreatorSubscriptions] = useState<Subscription[]>([]);
+    const suiClient = useSuiClient();
+    const account = useCurrentAccount();
+    const { mutateAsync: signTransaction } = useSignTransaction();
 
     const disableSubmit = !encryptionIv || !encryptionKey;
 
@@ -89,90 +92,183 @@ export function ImageUploadForm({
         },
     });
 
+    useEffect(() => {
+        if (!account) return;
+        (async () => {
+            const registryResp = await suiClient.getObject({
+                id: process.env.NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID,
+                options: {
+                    showContent: true,
+                },
+            });
+            console.log(registryResp);
+            const subscriptionResp = await suiClient.multiGetObjects({
+                ids: registryResp.data?.content?.fields.subscriptions,
+                options: {
+                    showContent: true,
+                },
+            });
+            const filtered = subscriptionResp.filter(
+                (s) => s.data?.content.fields.creator == account.address
+            );
+            const formattedSubscriptions: Subscription[] = [];
+
+            filtered.forEach(async (subscription) => {
+                formattedSubscriptions.push({
+                    label: subscription.data.content.fields.title,
+                    value: subscription.data.content.fields.id.id,
+                });
+            });
+            setCreatorSubscriptions(formattedSubscriptions);
+        })();
+    }, []);
+
     async function onSubmit(data: z.infer) {
         setOpen(false);
-        console.log(data);
         setKey(encryptionKey);
         setIv(encryptionIv);
 
+        console.log('data', data);
+
         const res = await uploadFileAsync(data.file);
         if (res?.newlyCreated) {
-            setBlobId(res.newlyCreated.blobObject.blobId);
+            setBlobId(
+                res.newlyCreated == undefined
+                    ? res.alreadyCertified.blobId
+                    : res.newlyCreated.blobObject.blobId
+            );
             console.log('File uploaded successfully', res);
         } else {
             console.error('Failed to upload file');
         }
+
+        const registryResp = await suiClient.getObject({
+            id: process.env.NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID,
+            options: {
+                showContent: true,
+            },
+        });
+        const s = registryResp.data?.content?.fields.subscriptions.fields.contents.filter(
+            (subscription) => subscription.fields.value.fields.creator == account?.address
+        );
+        const userAddresses = [];
+        const encKeys = [];
+        const encIvs = [];
+        s.fields.contents.forEach((subscription) => {
+            console.log(subscription);
+        });
+        const tx = new Transaction();
+
+        tx.moveCall({
+            target: `${process.env.NEXT_PUBLIC_PACKAGE_ID}::subscription::content`,
+            arguments: [
+                tx.object(data.subscription),
+                tx.pure.string(
+                    res.newlyCreated == undefined
+                        ? res.alreadyCertified.blobId
+                        : res.newlyCreated.blobObject.blobId
+                ),
+                tx.pure.vector('string', []),
+                tx.pure.vector('string', ['1', '2']),
+                tx.pure.vector('string', ['1', '2']),
+            ],
+        });
+
+        const { bytes, signature, reportTransactionEffects } = await signTransaction({
+            transaction: tx,
+            chain: 'sui:testnet',
+        });
+
+        const executeResult = await suiClient.executeTransactionBlock({
+            transactionBlock: bytes,
+            signature,
+            options: {
+                showRawEffects: true,
+                showObjectChanges: true,
+            },
+        });
+
+        // Always report transaction effects to the wallet after execution
+        reportTransactionEffects(executeResult.rawEffects!);
+
+        console.log(executeResult);
     }
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="flex items-center justify-between px-2">
-                    <FormField
-                        control={form.control}
-                        name="title"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Title</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Title..." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="subscription"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                                <FormLabel>Subscription</FormLabel>
-                                <SubscriptionDropdown
-                                    subscriptions={subscriptions}
-                                    field={field}
-                                    form={form}
-                                />
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
+        <>
+            {creatorSubscriptions == undefined ? (
+                <div>Create a subscription first!</div>
+            ) : (
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        <div className="flex items-center justify-between px-2">
+                            <FormField
+                                control={form.control}
+                                name="title"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Title</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Title..." {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="subscription"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel>Subscription</FormLabel>
+                                        <SubscriptionDropdown
+                                            subscriptions={creatorSubscriptions}
+                                            field={field}
+                                            form={form}
+                                        />
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
 
-                {preview && (
-                    <div className="flex justify-center">
-                        <img src={preview} alt="Preview" className="h-48 w-72 rounded-md" />
-                    </div>
-                )}
+                        {preview && (
+                            <div className="flex justify-center">
+                                <img src={preview} alt="Preview" className="h-48 w-72 rounded-md" />
+                            </div>
+                        )}
 
-                <FormField
-                    control={form.control}
-                    name="file"
-                    render={({ field }) => {
-                        return (
-                            <FormItem>
-                                <FormLabel>File</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="file"
-                                        onChange={(e) => {
-                                            const { files, displayUrl } = getImageData(e);
-                                            setPreview(displayUrl);
-                                            field.onChange(
-                                                e.target.files ? e.target.files[0] : null
-                                            );
-                                        }}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        );
-                    }}
-                />
-                <Button disabled={disableSubmit} type="submit">
-                    Submit
-                </Button>
-            </form>
-        </Form>
+                        <FormField
+                            control={form.control}
+                            name="file"
+                            render={({ field }) => {
+                                return (
+                                    <FormItem>
+                                        <FormLabel>File</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="file"
+                                                onChange={(e) => {
+                                                    const { files, displayUrl } = getImageData(e);
+                                                    setPreview(displayUrl);
+                                                    field.onChange(
+                                                        e.target.files ? e.target.files[0] : null
+                                                    );
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                );
+                            }}
+                        />
+                        <Button disabled={disableSubmit} type="submit">
+                            Submit
+                        </Button>
+                    </form>
+                </Form>
+            )}
+        </>
     );
 }
 

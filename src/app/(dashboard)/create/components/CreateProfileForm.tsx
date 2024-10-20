@@ -37,6 +37,15 @@ function getImageData(event: ChangeEvent) {
     return { files, displayUrl };
 }
 
+function getBase64(file: File) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (error) => reject(error);
+    });
+}
+
 const formSchema = z.object({
     username: z
         .string()
@@ -76,7 +85,7 @@ export function CreateProfileForm({ setOpen }: { setOpen: (open: boolean) => voi
             `https://walrus-testnet-publisher.nodes.guru/v1/store?epochs=5`,
             {
                 method: 'PUT',
-                body: btoa(data.avatar),
+                body: (await getBase64(data.avatar)) as string,
                 headers: {
                     'Content-Type': 'text/plain',
                 },
@@ -87,7 +96,10 @@ export function CreateProfileForm({ setOpen }: { setOpen: (open: boolean) => voi
         }
         const result = await response.json();
         console.log(result);
-        const blobId = result.newlyCreated.blobObject.blobId;
+        const blobId =
+            result.newlyCreated == undefined
+                ? result.alreadyCertified.blobId
+                : result.newlyCreated.blobObject.blobId;
 
         const tx = new Transaction();
 

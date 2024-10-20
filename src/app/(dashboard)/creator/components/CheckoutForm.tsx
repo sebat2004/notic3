@@ -17,12 +17,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import SubscriptionDropdown from './ui/SubscriptionDropdown';
 
-const subscriptions = [
-    { label: 'Free', value: 'free' },
-    { label: 'Basic', value: 'basic' },
-    { label: 'Premium', value: 'premium' },
-    { label: 'Pro', value: 'pro' },
-] as const;
+const subscriptions = [{ label: 'Free Plan', value: 'free' }] as const;
+
 const formSchema = z.object({
     subscription: z.string().min(1, {
         message: 'Subscription is required.',
@@ -45,7 +41,7 @@ const formSchema = z.object({
         }),
 });
 
-export function TextUploadForm({ setOpen }: { setOpen: (open: boolean) => void }) {
+export function CheckoutForm({ setOpen }: { setOpen: (open: boolean) => void }) {
     // 1. Define your form.
     const form = useForm<z.infer>({
         resolver: zodResolver(formSchema),
@@ -62,6 +58,7 @@ export function TextUploadForm({ setOpen }: { setOpen: (open: boolean) => void }
         // ✅ This will be type-safe and validated.
         setOpen(false);
         console.log(values);
+        console.log('hi');
     }
 
     return (
