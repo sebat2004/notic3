@@ -67,6 +67,7 @@ export default function CreatorProfile({ params }: { params: Params }) {
     const [creatorSubscriptions, setCreatorSubscriptions] = useState([]);
     const { data, isLoading } = useDownloadUnencryptedFile(userAvatarBlob);
     const { mutateAsync: signTransaction } = useSignTransaction();
+    console.log(userAvatarBlob);
 
     useEffect(() => {
         if (!account) return;
@@ -89,6 +90,8 @@ export default function CreatorProfile({ params }: { params: Params }) {
                     });
 
                     setCreator(creatorResp.data?.content.fields);
+
+                    setUserAvatarBlob(creatorResp.data?.content.fields.picture);
 
                     const registryResp = await suiClient.getObject({
                         id: process.env.NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID,
@@ -345,6 +348,11 @@ export default function CreatorProfile({ params }: { params: Params }) {
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center justify-evenly">
+                            {creatorSubscriptions.length === 0 && (
+                                <p className="mt-4 text-gray-600">
+                                    This creator has not set up any subscriptions yet :(
+                                </p>
+                            )}
                             {creatorSubscriptions.map((subscription) => (
                                 <Card
                                     key={subscription.data.content.fields.id.id}

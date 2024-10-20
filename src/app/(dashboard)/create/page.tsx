@@ -35,6 +35,7 @@ import { useKeyPair } from '@/hooks/use-key-pair';
 import { useDownloadUnencryptedFile } from '@/hooks/getdata';
 import { Skeleton } from '@/components/ui/skeleton';
 import { saveAs } from 'file-saver';
+import { Creator, useCreators } from '@/hooks/use-creators';
 
 const CreatePage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -44,33 +45,26 @@ const CreatePage = () => {
     const [iv, setIv] = useState<Uint8Array | null>(null);
     const [blobId, setBlobId] = useState<string | null>(null);
     const [registered, setRegistered] = useState(false);
-    const [creator, setCreator] = useState(null);
+    const [creator, setCreator] = useState<Creator | null>(null);
 
     const suiClient = useSuiClient();
     const account = useCurrentAccount();
-    const { data } = useDownloadUnencryptedFile(creator?.picture);
+    const { data } = useDownloadUnencryptedFile(creator?.image);
+    const creators = useCreators();
 
     const query = useKeyPair();
     const { publicKey, privateKey } = query.data || {};
 
     useEffect(() => {
         if (!account) return;
-        (async () => {
-            const res = await suiClient.getObject({
-                id: process.env.NEXT_PUBLIC_CREATOR_REGISTRY_ID,
-                options: {
-                    showContent: true,
-                },
-            });
-            console.log(res);
-            res.data?.content?.fields.creators.fields.contents.forEach((creator) => {
-                if (creator.fields.key == account.address) {
-                    setRegistered(true);
-                    setCreator(creator.fields.value.fields);
-                }
-            });
-        })();
-    }, [account]);
+        console.log(creators);
+        creators.forEach((creator) => {
+            if (creator.address === account.address) {
+                setRegistered(true);
+                setCreator(creator);
+            }
+        });
+    }, [account, creators]);
 
     if (!registered) {
         return (
@@ -124,18 +118,14 @@ const CreatePage = () => {
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col items-center">
-                        <img
-                            src="https://i.pravatar.cc/300"
-                            alt="Profile Picture"
-                            className="h-24 w-24 rounded-full"
-                        />
+                        <img src={data} alt="Profile Picture" className="h-24 w-24 rounded-full" />
                         <h1 className="mt-2 text-2xl font-semibold">{}</h1>
                         <p className="text-sm text-muted-foreground">Software Developer</p>
                     </div>
                 </CardContent>
                 <CardFooter>
                     <Button asChild>
-                        <Link className="w-full" href="" size="lg">
+                        <Link className="w-full" href={`creator/${account?.address}`} size="lg">
                             Edit Profile
                         </Link>
                     </Button>
