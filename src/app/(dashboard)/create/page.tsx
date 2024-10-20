@@ -70,7 +70,7 @@ const CreatePage = () => {
         })();
     }, [account]);
 
-    if (!registered) {
+    if (!registered || registered) {
         return (
             <div className="mx-auto my-10 w-full max-w-lg">
                 <p className="text-center text-4xl font-bold">Create Profile</p>
@@ -237,29 +237,6 @@ const CreatePage = () => {
                     </p>
                 </CardFooter>
             </Card>
-
-            <Dialog>
-                <DialogTrigger asChild>
-                    <SidebarMenuButton className="py-4">
-                        <KeyRound className="mr-2" />
-                        <span className="text-xl font-bold">Secrets</span>
-                    </SidebarMenuButton>
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Download</DialogTitle>
-                        <DialogDescription>
-                            Here are your secret RSA keys. Make sure not to share these with
-                            anybody!
-                        </DialogDescription>
-                    </DialogHeader>
-                    {/* the keys are long as fuck so consider using file-saver -> https://www.npmjs.com/package/file-saver to save them to a file the user can download instead*/}
-                    <div className="mt-4 space-y-2 break-words">
-                        <p>Public Key: {publicKeyHex}</p>
-                        <p>Private Key: {privateKeyHex}</p>
-                    </div>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 };

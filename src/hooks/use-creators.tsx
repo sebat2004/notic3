@@ -22,7 +22,7 @@ export const useCreators = () => {
                 },
             });
 
-            console.log(registryResp);
+            console.log('registry', registryResp);
 
             const ids: string[] = [];
             registryResp!.data!.content!.fields.creators.fields.contents.forEach((c) => {
@@ -36,14 +36,14 @@ export const useCreators = () => {
                 },
             });
 
-            console.log(usersResp);
+            console.log('users', usersResp);
 
             setCreators(
                 usersResp.map((rawCreator: any) => ({
-                    name: rawCreator.data.content.fields.value.fields.name as string,
-                    bio: rawCreator.data.content.fields.value.fields.bio as string,
+                    name: rawCreator.data.content.fields.name as string,
+                    bio: rawCreator.data.content.fields.bio as string,
                     address: rawCreator.data.content.fields.creator_address as string,
-                    image: rawCreator.data.content.fields.value.fields.picture as string,
+                    image: rawCreator.data.content.fields.picture as string,
                 }))
             );
         };
