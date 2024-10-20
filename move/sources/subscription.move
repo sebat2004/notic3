@@ -6,7 +6,7 @@ module notic3::subscription {
 
     public struct CreatorRegistry has key {
         id: UID,
-        creators: vector<ID>
+        creators: VecMap<address, Creator>
     }
 
     public struct Creator has key, store {
@@ -25,18 +25,18 @@ module notic3::subscription {
         bio: String,
         ctx: &mut TxContext
     ) {
-        let creator = Creator { 
-            id: object::new(ctx),
-            creator_address: tx_context::sender(ctx),
-            name,
-            picture,
-            bio,
-            subscriptions: vector::empty()
-        };
-        let creator_id = object::id(&creator);
-        vector::push_back(&mut registry.creators, creator_id);
-
-        transfer::share_object(creator);
+        let sender = tx_context::sender(ctx);
+        if (!vec_map::contains(&registry.creators, &sender)) {
+            let creator = Creator { 
+                id: object::new(ctx),
+                creator_address: sender,
+                name,
+                picture,
+                bio,
+                subscriptions: vector::empty()
+            };
+            vec_map::insert(&mut registry.creators, creator.creator_address, creator);
+        }
     }
 
     public struct CreatorSubscriptionRegistry has key {
@@ -56,6 +56,7 @@ module notic3::subscription {
     public struct Subscription has key, store {
         id: UID,
         creator_subscription_id: ID,
+        user_public_key: vector<u8>,
         start_time: u64,
         end_time: u64
     }
@@ -82,7 +83,7 @@ module notic3::subscription {
 
         let creatorRegistry = CreatorRegistry {
             id: object::new(ctx),
-            creators: vector::empty(),
+            creators: vec_map::empty(),
         };
         transfer::share_object(creatorRegistry);
     }
@@ -141,6 +142,7 @@ module notic3::subscription {
 
     public entry fun subscribe(
         self: &mut CreatorSubscription,
+        user_public_key: vector<u8>,
         clock: &Clock,
         ctx: &mut TxContext
     ) {
@@ -149,6 +151,7 @@ module notic3::subscription {
 
         let subscription = Subscription {
             id: object::new(ctx),
+            user_public_key,
             creator_subscription_id: object::uid_to_inner(&self.id),
             start_time: now,
             end_time: now + self.subscription_duration

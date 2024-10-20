@@ -15,12 +15,12 @@ import {
 import { Image, Video, Type, ChartNoAxesColumn } from 'lucide-react';
 import ContentOption from './components/ui/ContentOption';
 import { TextUploadForm } from './components/TextUploadForm';
-import { useGetCreator } from '@/hooks/use-get-creator';
-import { useCurrentAccount } from '@mysten/dapp-kit';
+import { useUploadFile } from '@/hooks/queries';
 import Link from 'next/link';
 import ImageUploadForm from './components/ImageUploadForm';
 import VideoUploadForm from './components/VideoUploadForm';
 import CreateProfileForm from './components/CreateProfileForm';
+import { useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 
 const CreatePage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -29,29 +29,29 @@ const CreatePage = () => {
     const [key, setKey] = useState<CryptoKey | null>(null);
     const [iv, setIv] = useState<Uint8Array>(new Uint8Array(12));
     const [blobId, setBlobId] = useState<string | null>(null);
+    const [registered, setRegistered] = useState(false);
+
     console.log('PAGE BLOB ID', blobId);
     console.log('PAGE IV', iv);
     console.log('PAGE KEY', key);
 
-    const [isClient, setIsClient] = useState(false);
-
+    const suiClient = useSuiClient();
     const account = useCurrentAccount();
-    console.log(account?.address);
-    const { data, isError } = useGetCreator(account?.address);
 
     useEffect(() => {
-        setIsClient(true);
+        if (!account) return;
+        (async () => {
+            const res = await suiClient.getObject({
+                id: process.env.NEXT_PUBLIC_CREATOR_REGISTRY_ID,
+                options: {
+                    showContent: true,
+                },
+            });
+            if (res.data?.content?.fields.creators.includes(account.address)) {
+                setRegistered(true);
+            }
+        })();
     }, []);
-
-    if (isError) {
-        return <div>Error</div>;
-    }
-
-    if (!isClient) {
-        return <div className="text-4xl">Please connect your wallet</div>;
-    }
-
-    const registered = false;
 
     if (!registered) {
         return (
