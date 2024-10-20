@@ -61,7 +61,7 @@ const CreatePage = () => {
                     showContent: true,
                 },
             });
-            console.log(res)
+            console.log(res);
             res.data?.content?.fields.creators.fields.contents.forEach((creator) => {
                 if (creator.fields.key == account.address) {
                     setRegistered(true);

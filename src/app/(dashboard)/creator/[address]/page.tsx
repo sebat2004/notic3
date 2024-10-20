@@ -20,9 +20,8 @@ import Link from 'next/link';
 import { useSignTransaction } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
 import { useKeyPair } from '@/hooks/use-key-pair';
-import { MIST_PER_SUI } from '@mysten/sui/utils'
+import { MIST_PER_SUI } from '@mysten/sui/utils';
 import { bcs } from '@mysten/bcs';
-
 
 type Params = {
     address: string;
@@ -89,8 +88,8 @@ export default function CreatorProfile({ params }: { params: Params }) {
                         },
                     });
 
-                    setCreator(creatorResp.data?.content.fields)
-                    
+                    setCreator(creatorResp.data?.content.fields);
+
                     const registryResp = await suiClient.getObject({
                         id: process.env.NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID,
                         options: {
@@ -105,7 +104,9 @@ export default function CreatorProfile({ params }: { params: Params }) {
                         },
                     });
 
-                    const filtered = subsriptionsResp.filter(s => s.data?.content.fields.creator == address);
+                    const filtered = subsriptionsResp.filter(
+                        (s) => s.data?.content.fields.creator == address
+                    );
                     console.log(filtered);
                     setCreatorSubscriptions(filtered);
                 }
@@ -120,18 +121,21 @@ export default function CreatorProfile({ params }: { params: Params }) {
     const handleSubmit = async (subscription) => {
         console.log(subscription);
 
-        const u64 = bcs.u64().serialize(BigInt(subscription.data.content.fields.subscription_price) * MIST_PER_SUI).toBytes();
+        const u64 = bcs
+            .u64()
+            .serialize(BigInt(subscription.data.content.fields.subscription_price) * MIST_PER_SUI)
+            .toBytes();
 
         const tx = new Transaction();
-        const [coin] = tx.splitCoins(tx.gas, [tx.pure(u64)])
-        
+        const [coin] = tx.splitCoins(tx.gas, [tx.pure(u64)]);
+
         tx.moveCall({
             target: `${process.env.NEXT_PUBLIC_PACKAGE_ID}::subscription::subscribe`,
             arguments: [
                 tx.object(subscription.data.objectId),
                 tx.pure(new Uint8Array()),
                 coin,
-                tx.object('0x6')
+                tx.object('0x6'),
             ],
         });
         const { bytes, signature, reportTransactionEffects } = await signTransaction({
