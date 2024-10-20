@@ -128,12 +128,15 @@ export default function CreatorProfile({ params }: { params: Params }) {
 
         const tx = new Transaction();
         const [coin] = tx.splitCoins(tx.gas, [tx.pure(u64)]);
+        tx.setGasBudget(100000000)
+        const array = new Uint8Array(32);
+        crypto.getRandomValues(array);
 
         tx.moveCall({
             target: `${process.env.NEXT_PUBLIC_PACKAGE_ID}::subscription::subscribe`,
             arguments: [
                 tx.object(subscription.data.objectId),
-                tx.pure(new Uint8Array()),
+                tx.pure(array),
                 coin,
                 tx.object('0x6'),
             ],
