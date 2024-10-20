@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 // Function to export keys to base64
-async function exportCryptoKey(key) {
+export async function exportCryptoKey(key) {
     const exported = await window.crypto.subtle.exportKey(
         key.type === 'private' ? 'pkcs8' : 'spki', // 'spki' for public, 'pkcs8' for private
         key
@@ -57,9 +57,13 @@ async function loadKeyPairFromLocalStorage() {
 const fetchKeyPair = async () => {
     const keys = await loadKeyPairFromLocalStorage();
 
-    console.log(keys);
-
-    if (keys) return keys;
+    if (keys) {
+        return {
+            ...keys,
+            rawPublicKey: await exportCryptoKey(keys.publicKey),
+            rawPrivateKey: await exportCryptoKey(keys.privateKey),
+        };
+    }
 
     const keyPair = await window.crypto.subtle.generateKey(
         {
@@ -77,7 +81,10 @@ const fetchKeyPair = async () => {
     const publicKey = keyPair.publicKey;
     const privateKey = keyPair.privateKey;
 
-    return { publicKey, privateKey };
+    const rawPublicKey = await exportCryptoKey(publicKey);
+    const rawPrivateKey = await exportCryptoKey(privateKey);
+
+    return { publicKey, privateKey, rawPublicKey, rawPrivateKey };
 };
 
 export const useKeyPair = () => {
