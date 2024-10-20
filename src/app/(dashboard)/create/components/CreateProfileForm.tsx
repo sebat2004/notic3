@@ -38,17 +38,17 @@ function getImageData(event: ChangeEvent) {
 const formSchema = z.object({
     username: z
         .string()
-        .min(2, {
+        .min(3, {
             message: 'Name must be at least 2 characters.',
         })
         .max(99, {
             message: 'Name must be under 100 characters.',
         }),
     bio: z.string().min(1, {
-        message: 'Subscription is required.',
+        message: 'Bio is required.',
     }),
     avatar: z
-        .instanceof(File)
+        .instanceof(File, { message: 'Required' })
         .refine((file) => {
             return ACCEPTED_FILE_TYPES.includes(file.type);
         }, 'File must be a JPEG, PNG, or WEBP')
@@ -56,6 +56,15 @@ const formSchema = z.object({
             return !file || file.size <= MAX_UPLOAD_SIZE;
         }, `File size must be less than ${MAX_MB}MB`),
 });
+
+function convertFileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (error) => reject(error);
+    });
+}
 
 export function CreateProfileForm({ setOpen }: { setOpen: (open: boolean) => void }) {
     const [preview, setPreview] = useState('');
@@ -65,9 +74,9 @@ export function CreateProfileForm({ setOpen }: { setOpen: (open: boolean) => voi
         defaultValues: {},
     });
 
-    function onSubmit(data: z.infer) {
+    async function onSubmit(data: z.infer) {
         setOpen(false);
-        console.log(data);
+        console.log(await convertFileToBase64(data.avatar));
         toast({
             title: 'You submitted the following values:',
             description: (
@@ -118,11 +127,11 @@ export function CreateProfileForm({ setOpen }: { setOpen: (open: boolean) => voi
                 )}
                 <FormField
                     control={form.control}
-                    name="file"
+                    name="avatar"
                     render={({ field }) => {
                         return (
                             <FormItem>
-                                <FormLabel>File</FormLabel>
+                                <FormLabel>Avatar</FormLabel>
                                 <FormControl>
                                     <Input
                                         type="file"
