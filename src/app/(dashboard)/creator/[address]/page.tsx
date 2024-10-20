@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,9 @@ import Link from 'next/link';
 import { useSignTransaction } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
 import { useKeyPair } from '@/hooks/use-key-pair';
+import { MIST_PER_SUI } from '@mysten/sui/utils'
+import { bcs } from '@mysten/bcs';
+
 
 type Params = {
     address: string;
@@ -74,29 +78,38 @@ export default function CreatorProfile({ params }: { params: Params }) {
                     showContent: true,
                 },
             });
-            console.log(res);
             res.data?.content?.fields.creators.fields.contents.forEach(async (creator) => {
                 if (creator.fields.key === address) {
-                    setCreator(creator.fields.value.fields);
                     if (creator.fields.key == account.address) setRegistered(true);
-                    const profileImage = creator.fields.value.fields.picture;
-                    if (profileImage) {
-                        setUserAvatarBlob(profileImage);
-                    }
+
+                    const creatorResp = await suiClient.getObject({
+                        id: creator.fields.value,
+                        options: {
+                            showContent: true,
+                        },
+                    });
+
+                    setCreator(creatorResp.data?.content.fields)
+                    
+                    const registryResp = await suiClient.getObject({
+                        id: process.env.NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID,
+                        options: {
+                            showContent: true,
+                        },
+                    });
+
+                    const subsriptionsResp = await suiClient.multiGetObjects({
+                        ids: registryResp.data.content.fields.subscriptions,
+                        options: {
+                            showContent: true,
+                        },
+                    });
+
+                    const filtered = subsriptionsResp.filter(s => s.data?.content.fields.creator == address);
+                    console.log(filtered);
+                    setCreatorSubscriptions(filtered);
                 }
             });
-            const registryResp = await suiClient.getObject({
-                id: process.env.NEXT_PUBLIC_CREATOR_SUBSCRIPTION_REGISTRY_ID,
-                options: {
-                    showContent: true,
-                },
-            });
-            const subscriptions =
-                registryResp.data?.content?.fields.subscriptions.fields.contents.filter(
-                    (subscription) => subscription.fields.value.fields.creator == account?.address
-                );
-            console.log(subscriptions);
-            setCreatorSubscriptions(subscriptions);
         })();
     }, [account]);
 
@@ -107,15 +120,18 @@ export default function CreatorProfile({ params }: { params: Params }) {
     const handleSubmit = async (subscription) => {
         console.log(subscription);
 
-        const tx = new Transaction();
+        const u64 = bcs.u64().serialize(BigInt(subscription.data.content.fields.subscription_price) * MIST_PER_SUI).toBytes();
 
+        const tx = new Transaction();
+        const [coin] = tx.splitCoins(tx.gas, [tx.pure(u64)])
+        
         tx.moveCall({
             target: `${process.env.NEXT_PUBLIC_PACKAGE_ID}::subscription::subscribe`,
             arguments: [
-                tx.object(subscription.fields.key),
-                tx.object('0x193ada1713774928f1800945532dadf102fd269af83ded780ff537febb838ddf'),
+                tx.object(subscription.data.objectId),
                 tx.pure(new Uint8Array()),
-                tx.object('0x6'),
+                coin,
+                tx.object('0x6')
             ],
         });
         const { bytes, signature, reportTransactionEffects } = await signTransaction({
@@ -316,52 +332,6 @@ export default function CreatorProfile({ params }: { params: Params }) {
                         </Tabs>
                     </CardContent>
                 </Card>
-                {!creator ? (
-                    <Skeleton className="mt-4 flex h-96 items-center justify-evenly">
-                        <Skeleton className="h-[90%] w-[25%] bg-gray-300" />
-                        <Skeleton className="h-[90%] w-[25%] bg-gray-300" />
-                        <Skeleton className="h-[90%] w-[25%] bg-gray-300" />
-                    </Skeleton>
-                ) : (
-                    <Card className="mt-4" id="support">
-                        <CardHeader>
-                            <CardTitle>Support {creator?.name}!</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex items-center justify-evenly">
-                                {tiers.map((tier) => (
-                                    <Card
-                                        key={tier.title}
-                                        className="mb-4 flex h-96 w-[25%] flex-col justify-between p-4"
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <h4 className="mb-2 text-2xl font-semibold">
-                                                    {tier.title}
-                                                </h4>
-                                                <p className="text-gray-600">{tier.description}</p>
-
-                                                <ul className="mt-5 flex flex-col gap-2">
-                                                    <h4 className="text-md font-semibold">
-                                                        Access to:
-                                                    </h4>
-                                                    {tier.postAccess.map((post) => (
-                                                        <dd key={post}>{post}</dd>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        </div>
-                                        <Button variant="outline">
-                                            <h4 className="text-md font-semibold">
-                                                Access for ${tier.price}
-                                            </h4>
-                                        </Button>
-                                    </Card>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
                 <Card className="mt-4" id="support">
                     <CardHeader>
                         <CardTitle>Support {creator?.name}!</CardTitle>
@@ -370,13 +340,13 @@ export default function CreatorProfile({ params }: { params: Params }) {
                         <div className="flex items-center justify-evenly">
                             {creatorSubscriptions.map((subscription) => (
                                 <Card
-                                    key={subscription.fields.key}
+                                    key={subscription.data.content.fields.id.id}
                                     className="mb-4 flex h-96 w-[25%] flex-col justify-between p-4"
                                 >
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <h4 className="mb-2 text-2xl font-semibold">
-                                                {subscription.fields.value.fields.title}
+                                                {subscription.data.content.fields.title}
                                             </h4>
                                             <p className="text-gray-600">{null}</p>
                                         </div>
