@@ -49,7 +49,7 @@ export const useCreators = () => {
         };
 
         fetchCreators();
-    }, []);
+    }, [suiClient]);
 
     return creators;
 };
