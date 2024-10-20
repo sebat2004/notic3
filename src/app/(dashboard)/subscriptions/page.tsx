@@ -94,7 +94,7 @@ function Subscriptions() {
                                 }
 
                                 setExpiry(new Date(timestamp).toLocaleString());
-
+                                
                                 setUserSubscriptions((prevSubscriptions) => {
                                     const newSubscription: Subscription = {
                                         creator_subscription_id:

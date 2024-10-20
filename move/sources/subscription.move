@@ -6,7 +6,7 @@ module notic3::subscription {
 
     public struct CreatorRegistry has key {
         id: UID,
-        creators: vector<ID>
+        creators: vector<address>
     }
 
     public struct Creator has key, store {
@@ -25,18 +25,19 @@ module notic3::subscription {
         bio: String,
         ctx: &mut TxContext
     ) {
-        let creator = Creator { 
-            id: object::new(ctx),
-            creator_address: tx_context::sender(ctx),
-            name,
-            picture,
-            bio,
-            subscriptions: vector::empty()
-        };
-        let creator_id = object::id(&creator);
-        vector::push_back(&mut registry.creators, creator_id);
-
-        transfer::share_object(creator);
+        let sender = tx_context::sender(ctx);
+        if (!vector::contains(&registry.creators, &sender)) {
+            let creator = Creator { 
+                id: object::new(ctx),
+                creator_address: sender,
+                name,
+                picture,
+                bio,
+                subscriptions: vector::empty()
+            };
+            vector::push_back(&mut registry.creators, creator.creator_address);
+            transfer::share_object(creator);
+        }
     }
 
     public struct CreatorSubscriptionRegistry has key {
